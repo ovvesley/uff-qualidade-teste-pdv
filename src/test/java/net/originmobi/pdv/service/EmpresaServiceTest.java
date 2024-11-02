@@ -32,7 +32,7 @@ public class EmpresaServiceTest {
     @Mock
     private EmpresaRepository empresaRepository;
 
-    private Empresa empresa;
+    private EmpresaRepository empresas;
 
     // @Before
     // public void setUp() {
@@ -45,14 +45,27 @@ public class EmpresaServiceTest {
         assertTrue(!lista_empresas.isPresent());
     }
 
-    // @Test
-    // public void testVerificaEmpresaExiste(){
-    //     private EmpresaRepository empresa
-    //     empresa.set
+    @Test
+    public void testVerificaEmpresaExiste(){
+        Empresa empresa = new Empresa();
+        empresa.setNome("bagulhos e cia."); 
+        empresa.setNome_fantasia("Vendinha"); 
+        empresa.setCnpj("999999999"); 
+        
+        Endereco endereco = new Endereco(); 
+        // endereco.setBairro("Limoeiro");
+        // endereco.setCidade("Niteroi");
+        
+        empresa.setEndereco(endereco);
 
-    //     Optional<Empresa> lista_empresas = EmpresaService.verificaEmpresaCadastrada();
-    //     assertTrue(lista_empresas.isPresent());
-    // }
+        // Configurando o mock para retornar a empresa quando buscar
+        when(empresaRepository.buscaEmpresaCadastrada()).thenReturn(Optional.of(empresa));
+
+        empresas.save(empresa);
+
+        Optional<Empresa> lista_empresas = EmpresaService.verificaEmpresaCadastrada();
+        assertTrue(lista_empresas.isPresent());
+    }
    
 
 }
