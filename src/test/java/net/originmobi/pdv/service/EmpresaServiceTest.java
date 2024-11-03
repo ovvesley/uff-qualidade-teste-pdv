@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import net.originmobi.pdv.model.Empresa;
 import net.originmobi.pdv.model.Endereco;
+import net.originmobi.pdv.model.EmpresaParametro;
 import net.originmobi.pdv.repository.EmpresaRepository;
 
 import static org.junit.Assert.*;
@@ -53,6 +54,24 @@ public class EmpresaServiceTest {
         Optional<Empresa> lista_empresas = empresaService.verificaEmpresaCadastrada();
         assertTrue(lista_empresas.isPresent());
         assertEquals("bagulhos e cia.", lista_empresas.get().getNome());
+    }
+
+    @Test
+    public void testBuscarEmpresaComNomeCorreto() {
+        when(empresaRepository.buscaEmpresaCadastrada()).thenReturn(Optional.of(empresa));
+
+        Optional<Empresa> lista_empresas = empresaService.verificaEmpresaCadastrada();
+        assertTrue(lista_empresas.isPresent());
+        assertEquals("Vendinha", lista_empresas.get().getNome_fantasia());
+    }
+
+    @Test
+    public void testBuscarEmpresaComCNPJCorreto() {
+        when(empresaRepository.buscaEmpresaCadastrada()).thenReturn(Optional.of(empresa));
+
+        Optional<Empresa> lista_empresas = empresaService.verificaEmpresaCadastrada();
+        assertTrue(lista_empresas.isPresent());
+        assertEquals("999999999", lista_empresas.get().getCnpj());
     }
 
 }
