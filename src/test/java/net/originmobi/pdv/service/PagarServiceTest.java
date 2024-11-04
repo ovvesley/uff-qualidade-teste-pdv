@@ -113,6 +113,32 @@ public class PagarServiceTest {
         SecurityContextHolder.clearContext();
 
     }
+
+    @Test
+    public void testCadastrarComSucesso() throws Exception {
+        when(fornecedores.busca(fornecedor.getCodigo())).thenReturn(Optional.of(fornecedor));
+
+        when(pagarRepo.save(any(Pagar.class))).thenReturn(pagar);
+
+        doNothing().when(pagarParcelaServ).cadastrar(
+                anyDouble(), anyDouble(), anyInt(), any(Timestamp.class), any(LocalDate.class), any(Pagar.class));
+
+        String resultado = pagarService.cadastrar(
+                fornecedor.getCodigo(),
+                pagar.getValor_total(),
+                pagar.getObservacao(),
+                parcela.getData_vencimento(),
+                pagarTipo
+        );
+
+        assertEquals("Despesa lançada com sucesso", resultado);
+
+        verify(pagarRepo, times(1)).save(any(Pagar.class));
+
+        verify(pagarParcelaServ, times(1)).cadastrar(
+                eq(pagar.getValor_total()), eq(pagar.getValor_total()), eq(0), any(Timestamp.class), eq(parcela.getData_vencimento()), any(Pagar.class));
+    }
+
     @Test
     public void testQuitarComSucesso() throws Exception {
         when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
