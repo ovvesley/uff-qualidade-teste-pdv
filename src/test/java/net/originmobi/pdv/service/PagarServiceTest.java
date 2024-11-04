@@ -1,18 +1,19 @@
 package net.originmobi.pdv.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-import net.originmobi.pdv.enumerado.caixa.EstiloLancamento;
-import net.originmobi.pdv.enumerado.caixa.TipoLancamento;
-import net.originmobi.pdv.model.*;
+import net.originmobi.pdv.model.Caixa;
+import net.originmobi.pdv.model.CaixaLancamento;
+import net.originmobi.pdv.model.Fornecedor;
+import net.originmobi.pdv.model.Pagar;
+import net.originmobi.pdv.model.PagarParcela;
+import net.originmobi.pdv.model.PagarTipo;
+import net.originmobi.pdv.model.Usuario;
 import net.originmobi.pdv.repository.PagarRepository;
 import net.originmobi.pdv.singleton.Aplicacao;
 
@@ -20,17 +21,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-/**
- * Test class for PagarService focusing on methods without complex dependencies.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class PagarServiceTest {
 
@@ -111,15 +111,12 @@ public class PagarServiceTest {
     @After
     public void tearDown() {
         SecurityContextHolder.clearContext();
-
     }
 
     @Test
     public void testCadastrarComSucesso() throws Exception {
         when(fornecedores.busca(fornecedor.getCodigo())).thenReturn(Optional.of(fornecedor));
-
         when(pagarRepo.save(any(Pagar.class))).thenReturn(pagar);
-
         doNothing().when(pagarParcelaServ).cadastrar(
                 anyDouble(), anyDouble(), anyInt(), any(Timestamp.class), any(LocalDate.class), any(Pagar.class));
 
@@ -134,23 +131,47 @@ public class PagarServiceTest {
         assertEquals("Despesa lançada com sucesso", resultado);
 
         verify(pagarRepo, times(1)).save(any(Pagar.class));
-
         verify(pagarParcelaServ, times(1)).cadastrar(
                 eq(pagar.getValor_total()), eq(pagar.getValor_total()), eq(0), any(Timestamp.class), eq(parcela.getData_vencimento()), any(Pagar.class));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testCadastrarSalvarPagarException() throws Exception {
+        when(fornecedores.busca(fornecedor.getCodigo())).thenReturn(Optional.of(fornecedor));
+        when(pagarRepo.save(any(Pagar.class))).thenThrow(new RuntimeException("Database error"));
+
+        pagarService.cadastrar(
+                fornecedor.getCodigo(),
+                pagar.getValor_total(),
+                pagar.getObservacao(),
+                parcela.getData_vencimento(),
+                pagarTipo
+        );
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testCadastrarPagarParcelaException() throws Exception {
+        when(fornecedores.busca(fornecedor.getCodigo())).thenReturn(Optional.of(fornecedor));
+        when(pagarRepo.save(any(Pagar.class))).thenReturn(pagar);
+        doThrow(new RuntimeException("Service error")).when(pagarParcelaServ).cadastrar(
+                anyDouble(), anyDouble(), anyInt(), any(Timestamp.class), any(LocalDate.class), any(Pagar.class));
+
+        pagarService.cadastrar(
+                fornecedor.getCodigo(),
+                pagar.getValor_total(),
+                pagar.getObservacao(),
+                parcela.getData_vencimento(),
+                pagarTipo
+        );
     }
 
     @Test
     public void testQuitarComSucesso() throws Exception {
         when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
-
         when(usuarios.buscaUsuario(usuario.getUser())).thenReturn(usuario);
-
         when(caixas.busca(anyLong())).thenReturn(Optional.of(caixa));
-
         when(caixa.getValor_total()).thenReturn(200.0);
-
         when(pagarParcelaServ.merger(any(PagarParcela.class))).thenReturn(parcela);
-
         when(lancamentos.lancamento(any(CaixaLancamento.class))).thenReturn("Lançamento realizado com sucesso");
 
         String resultado = pagarService.quitar(
@@ -161,4 +182,49 @@ public class PagarServiceTest {
         verify(pagarParcelaServ, times(1)).merger(any(PagarParcela.class));
         verify(lancamentos, times(1)).lancamento(any(CaixaLancamento.class));
     }
+
+    @Test(expected = RuntimeException.class)
+    public void testQuitarMergerException() throws Exception {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+        doThrow(new RuntimeException("Database error")).when(pagarParcelaServ).merger(any(PagarParcela.class));
+
+        pagarService.quitar(
+                parcela.getCodigo(), 50.0, 0.0, 0.0, 1L);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testQuitarLancamentoException() throws Exception {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+        when(pagarParcelaServ.merger(any(PagarParcela.class))).thenReturn(parcela);
+        when(usuarios.buscaUsuario(usuario.getUser())).thenReturn(usuario);
+        when(caixas.busca(anyLong())).thenReturn(Optional.of(caixa));
+        when(caixa.getValor_total()).thenReturn(200.0);
+        doThrow(new RuntimeException("Service error")).when(lancamentos).lancamento(any(CaixaLancamento.class));
+
+        pagarService.quitar(
+                parcela.getCodigo(), 50.0, 0.0, 0.0, 1L);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testQuitarSaldoInsuficienteException() throws Exception {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+        when(pagarParcelaServ.merger(any(PagarParcela.class))).thenReturn(parcela);
+        when(usuarios.buscaUsuario(usuario.getUser())).thenReturn(usuario);
+        when(caixas.busca(anyLong())).thenReturn(Optional.of(caixa));
+        when(caixa.getValor_total()).thenReturn(40.0);
+
+        pagarService.quitar(
+                parcela.getCodigo(), 50.0, 0.0, 0.0, 1L);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testQuitarValorPagamentoInvalidoException() throws Exception {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+
+        double vlPagoInvalido = parcela.getValor_restante() + 10.0;
+
+        pagarService.quitar(
+                parcela.getCodigo(), vlPagoInvalido, 0.0, 0.0, 1L);
+    }
 }
+
