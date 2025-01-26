@@ -26,3 +26,7 @@ target/
 
 /entrega02/teste_de_sistema/venv/
 /entrega02/teste_de_sistema/google-chrome-stable_current_amd64.deb
+/entrega02/teste_de_sistema/helpers/__pycache__
+/entrega02/teste_de_sistema/casos_de_teste/__pycache__
+
+**/__init__.py

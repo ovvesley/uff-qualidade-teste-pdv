@@ -21,6 +21,6 @@ $ source venv/bin/activate
 
 2. Rode usando comando python
 
-$ python casos_de_teste/caso_01.py
+$  python -m casos_de_teste.caso_01
 
 
