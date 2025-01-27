@@ -10,6 +10,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+from selenium.common.exceptions import TimeoutException
+
 
 driver = webdriver.Chrome()
 
@@ -35,6 +37,21 @@ def add_pagamento(descricao, formaPagamento):
     time.sleep(5)
 
     campo_salvar = driver.find_element(By.XPATH, '//*[@id="form_categoria"]/input[2]').click()
+
+    time.sleep(5)
+
+    campo_listarTodos = driver.find_element(By.XPATH, '//*[@id="btn-padrao"]/a').click()
+
+    try:
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_any_elements_located((By.XPATH, f'//table/tbody/tr/td[contains(text(), "{descricao}")]'))
+        )
+        assert driver.find_element(By.XPATH, f'//table/tbody/tr/td[contains(text(), "{descricao}")]')
+        print(f"Pagamento '{descricao}' adicionado com sucesso à lista de pagamentos.")
+
+    except TimeoutException:
+        print(f"Pagamento '{descricao}' não apareceu na lista de pagamentos a tempo.")
+        raise AssertionError(f"Pagamento '{descricao}' não encontrado na lista de pagamentos.")
 
 try:
     
