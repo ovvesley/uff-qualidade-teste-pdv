@@ -18,8 +18,8 @@ $ sudo gdebi google-chrome*
 1. Ainda na pasta /entrega02/teste_de_sistema/ ative a venv
 
 $ source venv/bin/activate
-
 2. Rode usando comando python
+3. pip install selenium
 
 $  python -m casos_de_teste.caso_01
 
