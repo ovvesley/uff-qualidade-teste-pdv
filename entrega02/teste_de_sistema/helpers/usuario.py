@@ -29,6 +29,16 @@ def hover_lateral_menu(driver, acao):
         path_elemento_hover = "/html/body/div[3]/div/div[8]/a/img"
         path_elemento_click = "/html/body/div[3]/div/div[8]/a"
 
+    elif acao == "titulos":
+        path_elemento_hover = "/html/body/div[3]/div/div[14]/ul/li/a/img"
+        path_elemento_click = "/html/body/div[3]/div/div[14]/ul/li/a"
+        path_segundo_click = """//a[@class='opcoes' and @href='/titulos']"""
+
+    elif acao == "maquina":
+        path_elemento_hover = "/html/body/div[3]/div/div[14]/ul/li/a/img"
+        path_elemento_click = "/html/body/div[3]/div/div[14]/ul/li/a"
+        path_segundo_click = """//a[@class='opcoes' and @href='/maquinacartao']"""
+
     elemento_hover = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, path_elemento_hover))
     )
@@ -40,4 +50,10 @@ def hover_lateral_menu(driver, acao):
         EC.element_to_be_clickable((By.XPATH, path_elemento_click))
     )
     elemento_clicar.click()
+
+    if acao == "titulos" or acao == "maquina":
+        segundo_elemento_clicar = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, path_segundo_click))
+        )
+        segundo_elemento_clicar.click()
     

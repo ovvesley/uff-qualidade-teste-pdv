@@ -1,4 +1,4 @@
-# Abrir um pedido
+# Abrir um pedido e confirmar se ele foi salvo
 
 from helpers.usuario import MENU, login, hover_lateral_menu
 
