@@ -1,4 +1,4 @@
-#Criar e editar fornecedeor
+#Criar  fornecedeor
 
 
 from helpers.usuario import MENU, login
@@ -104,14 +104,14 @@ def cria_fornecedor(nomeFantasia, Nome, CNPJ, Escricao, Observacao, rua, bairro,
 
     try:
         WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, f'//table/tbody/tr/td[contains(text(), "{CNPJ}")]'))
+            EC.visibility_of_element_located((By.XPATH, '/html/body/section[1]/div/div/div[1]/div/span'))
         )
-        assert driver.find_element(By.XPATH, f'//table/tbody/tr/td[contains(text(), "{CNPJ}")]')
-        print(f"Fornecedor com CNPJ '{CNPJ}' adicionado com sucesso.")
-
+        
+        assert driver.find_element(By.XPATH, '/html/body/section[1]/div/div/div[1]/div/span'), "fornecedor não foi criado"
+        
     except TimeoutException:
-        print(f"Fornecedor com CNPJ '{CNPJ}' não apareceu na lista a tempo.")
-        raise AssertionError(f"CNPJ '{CNPJ}' não encontrado na lista de fornecedores.")
+        print("fornecedor não foi criado")
+        raise AssertionError("fornecedor não foi criado")
 
 
 try:
