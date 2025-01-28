@@ -1,3 +1,6 @@
+
+#verifica se soma das despesas na página inicial bate com as despesas lançadas
+
 from helpers.usuario import MENU, login
 
 from selenium import webdriver
