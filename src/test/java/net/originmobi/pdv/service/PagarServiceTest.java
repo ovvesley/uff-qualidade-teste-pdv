@@ -1,10 +1,17 @@
 package net.originmobi.pdv.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import net.originmobi.pdv.model.Caixa;
@@ -125,14 +132,14 @@ public class PagarServiceTest {
                 pagar.getValor_total(),
                 pagar.getObservacao(),
                 parcela.getData_vencimento(),
-                pagarTipo
-        );
+                pagarTipo);
 
         assertEquals("Despesa lançada com sucesso", resultado);
 
         verify(pagarRepo, times(1)).save(any(Pagar.class));
         verify(pagarParcelaServ, times(1)).cadastrar(
-                eq(pagar.getValor_total()), eq(pagar.getValor_total()), eq(0), any(Timestamp.class), eq(parcela.getData_vencimento()), any(Pagar.class));
+                eq(pagar.getValor_total()), eq(pagar.getValor_total()), eq(0), any(Timestamp.class),
+                eq(parcela.getData_vencimento()), any(Pagar.class));
     }
 
     @Test(expected = RuntimeException.class)
@@ -145,8 +152,7 @@ public class PagarServiceTest {
                 pagar.getValor_total(),
                 pagar.getObservacao(),
                 parcela.getData_vencimento(),
-                pagarTipo
-        );
+                pagarTipo);
     }
 
     @Test(expected = RuntimeException.class)
@@ -161,8 +167,7 @@ public class PagarServiceTest {
                 pagar.getValor_total(),
                 pagar.getObservacao(),
                 parcela.getData_vencimento(),
-                pagarTipo
-        );
+                pagarTipo);
     }
 
     @Test
@@ -226,5 +231,107 @@ public class PagarServiceTest {
         pagarService.quitar(
                 parcela.getCodigo(), vlPagoInvalido, 0.0, 0.0, 1L);
     }
-}
 
+    @Test
+    public void testCadastrarComObservacaoVazia() {
+        when(fornecedores.busca(fornecedor.getCodigo())).thenReturn(Optional.of(fornecedor));
+        when(pagarRepo.save(any(Pagar.class))).thenAnswer(invocation -> {
+            Pagar pagarSalvo = invocation.getArgument(0);
+            assertEquals(pagarTipo.getDescricao(), pagarSalvo.getObservacao());
+            return pagarSalvo;
+        });
+        doNothing().when(pagarParcelaServ).cadastrar(anyDouble(), anyDouble(), anyInt(), any(Timestamp.class),
+                any(LocalDate.class), any(Pagar.class));
+
+        String resultado = pagarService.cadastrar(
+                fornecedor.getCodigo(),
+                pagar.getValor_total(),
+                "",
+                parcela.getData_vencimento(),
+                pagarTipo);
+
+        assertEquals("Despesa lançada com sucesso", resultado);
+        verify(pagarRepo).save(any(Pagar.class));
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void testCadastrarFornecedorNaoEncontrado() {
+        when(fornecedores.busca(anyLong())).thenReturn(Optional.empty());
+        pagarService.cadastrar(1L, 100.0, "obs", LocalDate.now(), pagarTipo);
+    }
+
+    @Test
+    public void testQuitarComRestanteZeroEQuitadoUm() {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+        when(usuarios.buscaUsuario(usuario.getUser())).thenReturn(usuario);
+        when(caixas.busca(anyLong())).thenReturn(Optional.of(caixa));
+        when(caixa.getValor_total()).thenReturn(200.0);
+        when(pagarParcelaServ.merger(any(PagarParcela.class))).thenAnswer(invocation -> {
+            PagarParcela pp = invocation.getArgument(0);
+            assertEquals(0.0, pp.getValor_restante(), 0.001);
+            assertEquals(1, pp.getQuitado());
+            return pp;
+        });
+        when(lancamentos.lancamento(any(CaixaLancamento.class))).thenReturn("Lançamento realizado com sucesso");
+
+        String resultado = pagarService.quitar(parcela.getCodigo(), 95.0, 5.0, 0.0, 1L);
+
+        assertEquals("Pagamento realizado com sucesso", resultado);
+        verify(pagarParcelaServ).merger(any(PagarParcela.class));
+    }
+
+    @Test
+    public void testQuitarComRestanteNegativoAjustaParaZero() {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+        when(usuarios.buscaUsuario(usuario.getUser())).thenReturn(usuario);
+        when(caixas.busca(anyLong())).thenReturn(Optional.of(caixa));
+        when(caixa.getValor_total()).thenReturn(200.0);
+        when(pagarParcelaServ.merger(any(PagarParcela.class))).thenAnswer(invocation -> {
+            PagarParcela pp = invocation.getArgument(0);
+            assertEquals(0.0, pp.getValor_restante(), 0.001);
+            assertEquals(1, pp.getQuitado());
+            return pp;
+        });
+        when(lancamentos.lancamento(any(CaixaLancamento.class))).thenReturn("Lançamento realizado com sucesso");
+
+        String resultado = pagarService.quitar(parcela.getCodigo(), 50.0, 60.0, 0.0, 1L);
+
+        assertEquals("Pagamento realizado com sucesso", resultado);
+        verify(pagarParcelaServ).merger(any(PagarParcela.class));
+    }
+
+    @Test
+    public void testQuitarComVlPagoZeroEDesconto() {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+        when(usuarios.buscaUsuario(usuario.getUser())).thenReturn(usuario);
+        when(caixas.busca(anyLong())).thenReturn(Optional.of(caixa));
+        when(caixa.getValor_total()).thenReturn(200.0);
+        when(pagarParcelaServ.merger(any(PagarParcela.class))).thenAnswer(invocation -> {
+            PagarParcela pp = invocation.getArgument(0);
+            assertEquals(50.0, pp.getValor_restante(), 0.001);
+            assertEquals(0, pp.getQuitado());
+            return pp;
+        });
+        when(lancamentos.lancamento(any(CaixaLancamento.class))).thenReturn("Lançamento realizado com sucesso");
+
+        String resultado = pagarService.quitar(parcela.getCodigo(), 0.0, 50.0, 0.0, 1L);
+
+        assertEquals("Pagamento realizado com sucesso", resultado);
+        verify(pagarParcelaServ).merger(any(PagarParcela.class));
+    }
+
+    @Test
+    public void testQuitarComVlAcrescimoNegativo() {
+        when(pagarParcelaServ.busca(parcela.getCodigo())).thenReturn(Optional.of(parcela));
+        when(usuarios.buscaUsuario(usuario.getUser())).thenReturn(usuario);
+        when(caixas.busca(anyLong())).thenReturn(Optional.of(caixa));
+        when(caixa.getValor_total()).thenReturn(50.0);
+        when(pagarParcelaServ.merger(any(PagarParcela.class))).thenReturn(parcela);
+        when(lancamentos.lancamento(any(CaixaLancamento.class))).thenReturn("Lançamento realizado com sucesso");
+
+        String resultado = pagarService.quitar(parcela.getCodigo(), 60.0, 0.0, -10.0, 1L);
+
+        assertEquals("Pagamento realizado com sucesso", resultado);
+        verify(lancamentos).lancamento(argThat(lancamento -> lancamento.getValor() == 50.0));
+    }
+}
