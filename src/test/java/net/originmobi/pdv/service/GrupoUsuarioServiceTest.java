@@ -16,6 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -115,7 +118,8 @@ public class GrupoUsuarioServiceTest {
         verify(grupousuarios, times(1)).findByCodigoIn(codigoGru);
     }
 
-    // Teste para o método merge(GrupoUsuario grupoUsuario, RedirectAttributes attributes) -ok
+    // Teste para o método merge(GrupoUsuario grupoUsuario, RedirectAttributes
+    // attributes) -ok
     @Test
     public void testMergeNovoGrupo() {
         // Dados de entrada
@@ -133,7 +137,6 @@ public class GrupoUsuarioServiceTest {
         verify(grupousuarios, times(1)).save(novoGrupo);
         verify(redirectAttributes, times(1)).addFlashAttribute("mensagem", "Grupo adicionado com sucesso");
     }
-
 
     // Teste que atualiza a descrição do grupo
     @Test
@@ -153,8 +156,7 @@ public class GrupoUsuarioServiceTest {
         verify(grupousuarios, times(1)).update(
                 grupoExistente.getNome(),
                 grupoExistente.getDescricao(),
-                grupoExistente.getCodigo()
-        );
+                grupoExistente.getCodigo());
         verify(redirectAttributes, times(1)).addFlashAttribute("mensagem", "Grupo atualizado com sucesso");
     }
 
@@ -258,5 +260,64 @@ public class GrupoUsuarioServiceTest {
 
         // Verificações
         verify(grupousuarios, times(1)).removePermissao(codigoPermissao, codgrupo);
-}
+    }
+
+    @Test
+    public void testMergeNovoGrupoComExcecaoAoSalvar() {
+        GrupoUsuario novoGrupo = new GrupoUsuario();
+        novoGrupo.setNome("Grupo Inválido");
+
+        doThrow(new RuntimeException("Erro de banco de dados")).when(grupousuarios).save(novoGrupo);
+
+        grupoUsuarioService.merge(novoGrupo, redirectAttributes);
+
+        verify(redirectAttributes).addFlashAttribute("mensagem", "Grupo adicionado com sucesso");
+        verify(grupousuarios).save(novoGrupo);
+    }
+    @Test
+    public void testRemoveComExcecaoAoDeletar() {
+        Long codigoGrupo = 1L;
+
+        when(grupousuarios.grupoTemUsuaio(codigoGrupo)).thenReturn(0);
+        doThrow(new RuntimeException("Erro ao deletar")).when(grupousuarios).deleteById(codigoGrupo);
+
+        String resultado = grupoUsuarioService.remove(codigoGrupo, redirectAttributes);
+
+        assertEquals("redirect:/grupousuario", resultado);
+        verify(grupousuarios).deleteById(codigoGrupo);
+    }
+
+    @Test
+    public void testBuscaGrupoNaoEncontrado() {
+        Long codigoInexistente = 999L;
+
+        when(grupousuarios.findByCodigoIn(codigoInexistente)).thenReturn(null);
+
+        GrupoUsuario resultado = grupoUsuarioService.buscaGrupo(codigoInexistente);
+
+        assertNull(resultado);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testAddPermissaoComExcecaoNoRepositorio() {
+        Long codgrupo = 1L;
+        Long codpermissao = 2L;
+
+        when(grupousuarios.grupoTemPermissao(codgrupo, codpermissao)).thenReturn(0);
+        doThrow(new RuntimeException("Erro no banco")).when(grupousuarios).addPermissao(codgrupo, codpermissao);
+
+        grupoUsuarioService.addPermissao(codgrupo, codpermissao);
+    }
+
+    @Test
+    public void testMergeNovoGrupoComDadosInvalidos() {
+        GrupoUsuario grupoInvalido = new GrupoUsuario();
+        grupoInvalido.setNome("");
+        grupoInvalido.setDescricao(null);
+
+        grupoUsuarioService.merge(grupoInvalido, redirectAttributes);
+
+        verify(grupousuarios).save(grupoInvalido);
+        verify(redirectAttributes).addFlashAttribute("mensagem", "Grupo adicionado com sucesso");
+    }
 }
