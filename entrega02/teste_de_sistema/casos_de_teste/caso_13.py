@@ -36,7 +36,7 @@ def verificador_valorDespesas ():
     soma_despesas = 0.0
     for linha in linhas:
         valor_str = linha.find_element(By.XPATH, './td[4]').text
-        print(f"Texto do valor da linha: '{valor_str}'")  # Depuração para verificar os valores extraídos
+        print(f"valor: '{valor_str}'")  
         try:
             valor = float(valor_str.replace('R$', '').strip().replace(',', '.'))
             soma_despesas += valor
