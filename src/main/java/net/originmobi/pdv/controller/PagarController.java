@@ -11,14 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.support.SessionStatus;
+
 
 import net.originmobi.pdv.filter.PagarParcelaFilter;
 import net.originmobi.pdv.model.Caixa;
@@ -36,88 +32,104 @@ import net.originmobi.pdv.service.PagarTipoService;
 @SessionAttributes("filter")
 public class PagarController {
 
-	private static final String PAGAR_FORM = "pagar/list";
+    private static final String PAGAR_FORM = "pagar/list";
 
-	@Autowired
-	private PagarService pagarServ;
+    @Autowired
+    private PagarService pagarServ;
 
-	@Autowired
-	private FornecedorService fornecedores;
+    @Autowired
+    private FornecedorService fornecedores;
 
-	@Autowired
-	private PagarParcelaService pagarParcelas;
+    @Autowired
+    private PagarParcelaService pagarParcelas;
 
-	@Autowired
-	private PagarTipoService pagartipos;
+    @Autowired
+    private PagarTipoService pagartipos;
 
-	@Autowired
-	private CaixaService caixas;
+    @Autowired
+    private CaixaService caixas;
 
-	@ModelAttribute("filter")
-	public PagarParcelaFilter inicializerFilter() {
-		return new PagarParcelaFilter();
-	}
-	
-	@GetMapping
-	public ModelAndView list(@ModelAttribute("filter") PagarParcelaFilter filter, Pageable pageable, Model model) {
-		ModelAndView mv = new ModelAndView(PAGAR_FORM);
-		
-		Page<PagarParcela> paginas = pagarParcelas.lista(filter, pageable);
-		mv.addObject("parcelas", paginas);
-		
-		model.addAttribute("qtdpaginas", paginas.getTotalPages());
-		model.addAttribute("pagAtual", paginas.getPageable().getPageNumber());
-		model.addAttribute("proxPagina", paginas.getPageable().next().getPageNumber());
-		model.addAttribute("pagAnterior", paginas.getPageable().previousOrFirst().getPageNumber());
-		model.addAttribute("hasNext", paginas.hasNext());
-		model.addAttribute("hasPrevious", paginas.hasPrevious());
-		
-		return mv;
-	}
+    @ModelAttribute("filter")
+    public PagarParcelaFilter inicializerFilter() {
+        return new PagarParcelaFilter();
+    }
 
-	@RequestMapping(method = RequestMethod.POST)
-	public @ResponseBody String cadastroDespesa(@RequestParam Map<String, String> request) {
-		Long codFornecedor = Long.decode(request.get("fornecedor"));
-		Long tipo = Long.decode(request.get("tipo"));
-		Double valor = Double.valueOf(request.get("valor"));
-		String obs = request.get("obs");
+    @GetMapping
+    public ModelAndView list(@ModelAttribute("filter") PagarParcelaFilter filter, Pageable pageable, Model model) {
+        ModelAndView mv = new ModelAndView(PAGAR_FORM);
+        Page<PagarParcela> paginas = pagarParcelas.lista(filter, pageable);
+        mv.addObject("parcelas", paginas);
 
-		DateTimeFormatter format = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		LocalDate vencimento = LocalDate.parse(request.get("vencimento"), format);
-		Optional<PagarTipo> pagarTipo = pagartipos.busca(tipo);
+        model.addAttribute("qtdpaginas", paginas.getTotalPages());
+        model.addAttribute("pagAtual", paginas.getNumber());
+        model.addAttribute("proxPagina", paginas.hasNext() ? paginas.nextPageable().getPageNumber() : paginas.getNumber());
+        model.addAttribute("pagAnterior", paginas.hasPrevious() ? paginas.previousPageable().getPageNumber() : paginas.getNumber());
+        model.addAttribute("hasNext", paginas.hasNext());
+        model.addAttribute("hasPrevious", paginas.hasPrevious());
 
-		return pagarServ.cadastrar(codFornecedor, valor, obs, vencimento, pagarTipo.get());
-	}
+        return mv;
+    }
 
-	@RequestMapping(value = "/quitar", method = RequestMethod.POST)
-	public @ResponseBody String quitar(@RequestParam Map<String, String> request) {
-		Long codparcela = Long.decode(request.get("parcela"));
-		Long codCaixa = Long.decode(request.get("caixa"));
+    @PostMapping
+public @ResponseBody String cadastroDespesa(@RequestParam Map<String, String> request, SessionStatus status) {
+    try {
+        Long codFornecedor = Long.parseLong(request.get("fornecedor"));
+        Long tipo = Long.parseLong(request.get("tipo"));
+        Double valor = Double.parseDouble(request.get("valor"));
+        String obs = request.get("obs");
 
-		String pago = request.get("vlpago").replace(",", ".");
-		String desc = request.get("desconto").replace(",", ".");
-		String acre = request.get("acrescimo").replace(",", ".");
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate vencimento = LocalDate.parse(request.get("vencimento"), format);
+        Optional<PagarTipo> pagarTipo = pagartipos.busca(tipo);
 
-		Double vlpago = pago.isEmpty() ? 0.0 : Double.valueOf(pago);
-		Double vldesc = desc.isEmpty() ? 0.0 : Double.valueOf(desc);
-		Double vlacre = acre.isEmpty() ? 0.0 : Double.valueOf(acre);
+        String result = pagarTipo.map(tipoPagamento -> pagarServ.cadastrar(codFornecedor, valor, obs, vencimento, tipoPagamento))
+                .orElse("Tipo de pagamento inválido");
+        status.setComplete();
+        return result;
+    } catch (NumberFormatException e) {
+        return "Erro ao processar os dados: " + e.getMessage();
+    }
+}
 
-		return pagarServ.quitar(codparcela, vlpago, vldesc, vlacre, codCaixa);
-	}
+    @PostMapping("/quitar")
+    public @ResponseBody String quitar(@RequestParam Map<String, String> request) {
+        try {
+            Long codparcela = Long.parseLong(request.get("parcela"));
+            Long codCaixa = Long.parseLong(request.get("caixa"));
 
-	@ModelAttribute("fornecedores")
-	public List<Fornecedor> fornecedores() {
-		return fornecedores.lista();
-	}
+            Double vlpago = parseDoubleOrDefault(request.get("vlpago"), 0.0);
+            Double vldesc = parseDoubleOrDefault(request.get("desconto"), 0.0);
+            Double vlacre = parseDoubleOrDefault(request.get("acrescimo"), 0.0);
 
-	@ModelAttribute("pagartipos")
-	public List<PagarTipo> pagartipo() {
-		return pagartipos.lista();
-	}
+            return pagarServ.quitar(codparcela, vlpago, vldesc, vlacre, codCaixa);
+        } catch (NumberFormatException e) {
+            return "Erro ao processar os dados: " + e.getMessage();
+        }
+    }
 
-	@ModelAttribute("caixasabertos")
-	public List<Caixa> caixasAbertos() {
-		return caixas.caixasAbertos();
-	}
+    private Double parseDoubleOrDefault(String value, Double defaultValue) {
+        if (value == null || value.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Double.parseDouble(value.replace(",", "."));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 
+    @ModelAttribute("fornecedores")
+    public List<Fornecedor> fornecedores() {
+        return fornecedores.lista();
+    }
+
+    @ModelAttribute("pagartipos")
+    public List<PagarTipo> pagartipo() {
+        return pagartipos.lista();
+    }
+
+    @ModelAttribute("caixasabertos")
+    public List<Caixa> caixasAbertos() {
+        return caixas.caixasAbertos();
+    }
 }

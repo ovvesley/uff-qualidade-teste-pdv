@@ -16,111 +16,123 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import net.originmobi.pdv.dto.FornecedorDTO;
 import net.originmobi.pdv.enumerado.TelefoneTipo;
 import net.originmobi.pdv.filter.FornecedorFilter;
 import net.originmobi.pdv.model.Cidade;
 import net.originmobi.pdv.model.Endereco;
-import net.originmobi.pdv.model.Fornecedor;
 import net.originmobi.pdv.model.Telefone;
 import net.originmobi.pdv.service.CidadeService;
 import net.originmobi.pdv.service.EnderecoService;
 import net.originmobi.pdv.service.FornecedorService;
 import net.originmobi.pdv.service.TelefoneService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 @RequestMapping("/fornecedor")
 public class FornecedorController {
 
-	private static final String FORNECEDOR_FORM = "fornecedor/form";
-	private static final String FORNECEDOR_LIST = "fornecedor/list";
+    private static final Logger logger = LoggerFactory.getLogger(FornecedorController.class);
+    private static final String FORNECEDOR_FORM = "fornecedor/form";
+    private static final String FORNECEDOR_LIST = "fornecedor/list";
+    private static final String REDIRECT_FORNECEDOR_FORM = "redirect:/fornecedor/form";
 
-	@Autowired
-	private FornecedorService fornecedores;
+    @Autowired
+    private FornecedorService fornecedores;
 
-	@Autowired
-	private CidadeService cidades;
+    @Autowired
+    private CidadeService cidades;
 
-	@Autowired
-	private EnderecoService enderecos;
+    @Autowired
+    private EnderecoService enderecos;
 
-	@Autowired
-	private TelefoneService telefones;
+    @Autowired
+    private TelefoneService telefones;
 
-	@GetMapping("/form")
-	public ModelAndView form() {
-		ModelAndView mv = new ModelAndView(FORNECEDOR_FORM);
-		mv.addObject("fornecedor", new Fornecedor());
-		mv.addObject("endereco", new Endereco());
-		mv.addObject("telefone", new Telefone());
-		return mv;
-	}
+    @GetMapping("/form")
+    public ModelAndView form() {
+        ModelAndView mv = new ModelAndView(FORNECEDOR_FORM);
+        mv.addObject("fornecedor", new FornecedorDTO());
+        mv.addObject("endereco", new Endereco());
+        mv.addObject("telefone", new Telefone());
+        return mv;
+    }
 
-	@GetMapping
-	public ModelAndView busca(@ModelAttribute("filter") FornecedorFilter filter) {
-		ModelAndView mv = new ModelAndView(FORNECEDOR_LIST);
-		List<Fornecedor> todosFornecedores = fornecedores.busca(filter);
-		mv.addObject("todosFornecedores", todosFornecedores);
-		return mv;
-	}
+    @GetMapping
+    public ModelAndView busca(@ModelAttribute("filter") FornecedorFilter filter) {
+        ModelAndView mv = new ModelAndView(FORNECEDOR_LIST);
+        List<FornecedorDTO> todosFornecedores = fornecedores.buscarDTO(filter);
+        mv.addObject("todosFornecedores", todosFornecedores);
+        return mv;
+    }
 
-	@GetMapping("{codigo}")
-	public ModelAndView editar(@PathVariable("codigo") Fornecedor fornecedor) {
-		ModelAndView mv = new ModelAndView(FORNECEDOR_FORM);
-		mv.addObject(fornecedor);
-		
-		Endereco endereco = enderecos.enderecoCodigo(fornecedor.getEndereco().getCodigo());
-		mv.addObject(endereco);
-		
-		Telefone telefone = telefones.telefoneCodigo(fornecedor.getTelefone().get(0).getCodigo());
-		mv.addObject(telefone);
-		return mv;
-	}
+    @GetMapping("{codigo}")
+    public ModelAndView editar(@PathVariable("codigo") Long codigo) {
+        ModelAndView mv = new ModelAndView(FORNECEDOR_FORM);
 
-	@PostMapping
-	@Transactional
-	public String codastrar(@Validated Fornecedor fornecedor, Errors errors, Endereco endereco, Telefone telefone,
-			RedirectAttributes attributes) {
+        FornecedorDTO fornecedor = fornecedores.buscarDTOPorCodigo(codigo);
+        mv.addObject("fornecedor", fornecedor);
 
-		if (errors.hasErrors())
-			return FORNECEDOR_FORM;
+        if (fornecedor.getEndereco() != null) {
+            Endereco endereco = enderecos.enderecoCodigo(fornecedor.getEndereco().getCodigo());
+            mv.addObject("endereco", endereco);
+        }
 
-		try {
-			enderecos.cadastrar(endereco);
-		} catch (Exception e) {
-			System.out.println("Erro ao cadastrar endereço " + e);
-			return "redirect:/fornecedor/form";
-		}
+        if (fornecedor.getTelefone() != null && !fornecedor.getTelefone().isEmpty()) {
+            Telefone telefone = telefones.telefoneCodigo(fornecedor.getTelefone().get(0).getCodigo());
+            mv.addObject("telefone", telefone);
+        }
 
-		try {
-			telefones.cadastrar(telefone);
-		} catch (Exception e) {
-			System.out.println("Erro ao cadastrar telefone " + e);
-			return "redirect:/fornecedor/form";
-		}
+        return mv;
+    }
 
-		fornecedor.setEndereco(endereco);
-		fornecedor.setTelefone(Arrays.asList(telefone));
+    @PostMapping
+    @Transactional
+    public String cadastrar(@Validated FornecedorDTO fornecedorDTO, Errors errors, Endereco endereco, Telefone telefone,
+                            RedirectAttributes attributes) {
 
-		try {
-			String mensagem = fornecedores.cadastrar(fornecedor);
-			attributes.addFlashAttribute("mensagem", mensagem);
+        if (errors.hasErrors()) {
+            return FORNECEDOR_FORM;
+        }
 
-			return "redirect:/fornecedor/form";
-		} catch (Exception e) {
-			System.out.println("Erro ao cadastrar fornecedor " + e);
-		}
+        try {
+            enderecos.cadastrar(endereco);
+        } catch (Exception e) {
+            logger.error("Erro ao cadastrar endereço", e);
+            attributes.addFlashAttribute("erro", "Erro ao cadastrar endereço.");
+            return REDIRECT_FORNECEDOR_FORM;
+        }
 
-		return "redirect:/fornecedor/form";
-	}
+        try {
+            telefones.cadastrar(telefone);
+        } catch (Exception e) {
+            logger.error("Erro ao cadastrar telefone", e);
+            attributes.addFlashAttribute("erro", "Erro ao cadastrar telefone.");
+            return REDIRECT_FORNECEDOR_FORM;
+        }
 
-	@ModelAttribute("cidades")
-	public List<Cidade> cidades() {
-		return cidades.lista();
-	}
+        fornecedorDTO.setEndereco(endereco);
+        fornecedorDTO.setTelefone(Arrays.asList(telefone));
 
-	@ModelAttribute("telefoneTipo")
-	public List<TelefoneTipo> telefoneTipo() {
-		return Arrays.asList(TelefoneTipo.values());
-	}
+        try {
+            String mensagem = fornecedores.cadastrarDTO(fornecedorDTO);
+            attributes.addFlashAttribute("mensagem", mensagem);
+            return REDIRECT_FORNECEDOR_FORM;
+        } catch (Exception e) {
+            logger.error("Erro ao cadastrar fornecedor", e);
+            attributes.addFlashAttribute("erro", "Erro ao cadastrar fornecedor.");
+            return REDIRECT_FORNECEDOR_FORM;
+        }
+    }
 
+    @ModelAttribute("cidades")
+    public List<Cidade> cidades() {
+        return cidades.lista();
+    }
+
+    @ModelAttribute("telefoneTipo")
+    public List<TelefoneTipo> telefoneTipo() {
+        return Arrays.asList(TelefoneTipo.values());
+    }
 }
