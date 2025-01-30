@@ -102,7 +102,25 @@ public class CaixaLancamentoServiceTest {
         assertEquals("Saldo insuficiente para realizar esta operação", resultado);
         assertEquals(Double.valueOf(150.0), lancamentoSaida.getValor()); //
     }
+    @Test
+    public void testLancamentoEntradaComObservacao() {
+        lancamentoEntrada.setObservacao("Entrada manual");
+        caixaLancamentoService.lancamento(lancamentoEntrada);
+        assertEquals("Entrada manual", lancamentoEntrada.getObservacao());
+    }
 
+    @Test
+    public void testLancamentoSaidaComObservacao() {
+        lancamentoSaida.setObservacao("Saída manual");
+        caixaLancamentoService.lancamento(lancamentoSaida);
+        assertEquals("Saída manual", lancamentoSaida.getObservacao());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testLancamentoSemCaixa() {
+        lancamentoEntrada.setCaixa(null);
+        caixaLancamentoService.lancamento(lancamentoEntrada);
+    }
 
 
 }

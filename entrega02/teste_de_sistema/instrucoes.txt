@@ -1,0 +1,26 @@
+================= Para rodar os casos de teste de sistema em ambiente WSL é preciso instalar o chrome via sudo (https://www.vivaolinux.com.br/dica/Instalando-Google-Chrome-no-Ubuntu-2204-LTS):
+
+1. entre na pasta /entrega02/teste_de_sistema/
+
+$ cd /entrega02/teste_de_sistema/
+
+2. instale gdebi
+
+$ sudo apt install gdebi
+
+3. Instale o Google Chrome Stable 64 bits:
+
+$ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+$ sudo gdebi google-chrome*
+
+================ Para rodar um caso de teste
+
+1. Ainda na pasta /entrega02/teste_de_sistema/ ative a venv
+
+$ source venv/bin/activate
+2. Rode usando comando python
+3. pip install selenium
+
+$  python -m casos_de_teste.caso_01
+
+
