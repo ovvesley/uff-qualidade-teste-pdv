@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CaixaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.service</a> &gt; <span class="el_source">CaixaService.java</span></div><h1>CaixaService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.service;
+
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import net.originmobi.pdv.enumerado.caixa.CaixaTipo;
+import net.originmobi.pdv.enumerado.caixa.EstiloLancamento;
+import net.originmobi.pdv.enumerado.caixa.TipoLancamento;
+import net.originmobi.pdv.filter.BancoFilter;
+import net.originmobi.pdv.filter.CaixaFilter;
+import net.originmobi.pdv.model.Caixa;
+import net.originmobi.pdv.model.CaixaLancamento;
+import net.originmobi.pdv.model.Usuario;
+import net.originmobi.pdv.repository.CaixaRepository;
+import net.originmobi.pdv.singleton.Aplicacao;
+
+@Service
+<span class="fc" id="L27">public class CaixaService {</span>
+
+	private String descricao;
+	private Usuario usuario;
+
+	@Autowired
+	private CaixaRepository caixas;
+
+	@Autowired
+	private UsuarioService usuarios;
+
+	@Autowired
+	private CaixaLancamentoService lancamentos;
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public Long cadastro(Caixa caixa) {
+
+<span class="nc bnc" id="L44" title="All 4 branches missed.">		if (caixa.getTipo().equals(CaixaTipo.CAIXA) &amp;&amp; caixaIsAberto())</span>
+<span class="nc" id="L45">			throw new RuntimeException(&quot;Existe caixa de dias anteriores em aberto, favor verifique&quot;);</span>
+
+		// caso o valor de abertura seja null, modifica o mesmo para 0.0, esse valor é
+		// adicionado tambem no valor_total
+<span class="nc bnc" id="L49" title="All 2 branches missed.">		Double vlbertura = caixa.getValor_abertura() == null ? 0.0 : caixa.getValor_abertura();</span>
+<span class="nc" id="L50">		caixa.setValor_abertura(vlbertura);</span>
+
+<span class="nc bnc" id="L52" title="All 2 branches missed.">		if (caixa.getValor_abertura() &lt; 0)</span>
+<span class="nc" id="L53">			throw new RuntimeException(&quot;Valor informado é inválido&quot;);</span>
+
+<span class="nc" id="L55">		Aplicacao aplicacao = Aplicacao.getInstancia();</span>
+<span class="nc" id="L56">		usuario = usuarios.buscaUsuario(aplicacao.getUsuarioAtual());</span>
+
+<span class="nc bnc" id="L58" title="All 2 branches missed.">		if (caixa.getTipo().equals(CaixaTipo.CAIXA))</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">			descricao = caixa.getDescricao().isEmpty() ? &quot;Caixa diário&quot; : caixa.getDescricao();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">		else if (caixa.getTipo().equals(CaixaTipo.COFRE))</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">			descricao = caixa.getDescricao().isEmpty() ? &quot;Cofre&quot; : caixa.getDescricao();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">		else if (caixa.getTipo().equals(CaixaTipo.BANCO))</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">			descricao = caixa.getDescricao().isEmpty() ? &quot;Banco&quot; : caixa.getDescricao();</span>
+
+<span class="nc" id="L65">		LocalDate dataAtual = LocalDate.now();</span>
+
+<span class="nc" id="L67">		caixa.setDescricao(descricao);</span>
+<span class="nc" id="L68">		caixa.setUsuario(usuario);</span>
+<span class="nc" id="L69">		caixa.setData_cadastro(java.sql.Date.valueOf(dataAtual));</span>
+
+		// se for BANCO, limpa os valores especiais de agencia e conta
+<span class="nc bnc" id="L72" title="All 2 branches missed.">		if (caixa.getTipo().equals(CaixaTipo.BANCO)) {</span>
+<span class="nc" id="L73">			System.out.println(&quot;agencia &quot; + caixa.getAgencia());</span>
+<span class="nc" id="L74">			System.out.println(&quot;conta &quot; + caixa.getConta());</span>
+<span class="nc" id="L75">			caixa.setAgencia(caixa.getAgencia().replaceAll(&quot;\\D&quot;, &quot;&quot;));</span>
+<span class="nc" id="L76">			caixa.setConta(caixa.getConta().replaceAll(&quot;\\D&quot;, &quot;&quot;));</span>
+		}
+
+		try {
+<span class="nc" id="L80">			caixas.save(caixa);</span>
+<span class="nc" id="L81">		} catch (Exception e) {</span>
+<span class="nc" id="L82">			e.getStackTrace();</span>
+<span class="nc" id="L83">			throw new RuntimeException(&quot;Erro no processo de abertura, chame o suporte técnico&quot;);</span>
+<span class="nc" id="L84">		}</span>
+
+<span class="nc bnc" id="L86" title="All 2 branches missed.">		if (caixa.getValor_abertura() &gt; 0) {</span>
+			try {
+
+<span class="nc bnc" id="L89" title="All 2 branches missed.">				String observacao = caixa.getTipo().equals(CaixaTipo.CAIXA) ? &quot;Abertura de caixa&quot;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">						: caixa.getTipo().equals(CaixaTipo.COFRE) ? &quot;Abertura de cofre&quot; : &quot;Abertura de banco&quot;;</span>
+
+<span class="nc" id="L92">				CaixaLancamento lancamento = new CaixaLancamento(observacao, caixa.getValor_abertura(),</span>
+						TipoLancamento.SALDOINICIAL, EstiloLancamento.ENTRADA, caixa, usuario);
+
+<span class="nc" id="L95">				lancamentos.lancamento(lancamento);</span>
+
+<span class="nc" id="L97">			} catch (Exception e) {</span>
+<span class="nc" id="L98">				e.getStackTrace();</span>
+<span class="nc" id="L99">				throw new RuntimeException(&quot;Erro no processo, chame o suporte&quot;);</span>
+<span class="nc" id="L100">			}</span>
+		} else {
+			// se não for realizado o lançamento de caixa então joga o valor total do caixa
+			// para 0.0
+<span class="nc" id="L104">			caixa.setValor_total(0.0);</span>
+		}
+
+<span class="nc" id="L107">		return caixa.getCodigo();</span>
+	}
+
+	public String fechaCaixa(Long caixa, String senha) {
+
+<span class="nc" id="L112">		Aplicacao aplicacao = Aplicacao.getInstancia();</span>
+<span class="nc" id="L113">		Usuario usuario = usuarios.buscaUsuario(aplicacao.getUsuarioAtual());</span>
+
+<span class="nc" id="L115">		BCryptPasswordEncoder decode = new BCryptPasswordEncoder();</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		if (senha.equals(&quot;&quot;))</span>
+<span class="nc" id="L118">			return &quot;Favor, informe a senha&quot;;</span>
+
+<span class="nc bnc" id="L120" title="All 2 branches missed.">		if (decode.matches(senha, usuario.getSenha())) {</span>
+
+			// busca caixa atual
+<span class="nc" id="L123">			Optional&lt;Caixa&gt; caixaAtual = caixas.findById(caixa);</span>
+
+<span class="nc bnc" id="L125" title="All 2 branches missed.">			if (caixaAtual.map(Caixa::getData_fechamento).isPresent())</span>
+<span class="nc" id="L126">				throw new RuntimeException(&quot;Caixa já esta fechado&quot;);</span>
+
+<span class="nc bnc" id="L128" title="All 2 branches missed.">			Double valorTotal = !caixaAtual.map(Caixa::getValor_total).isPresent() ? 0.0</span>
+<span class="nc" id="L129">					: caixaAtual.map(Caixa::getValor_total).get();</span>
+
+<span class="nc" id="L131">			Timestamp dataHoraAtual = new Timestamp(System.currentTimeMillis());</span>
+<span class="nc" id="L132">			caixaAtual.get().setData_fechamento(dataHoraAtual);</span>
+<span class="nc" id="L133">			caixaAtual.get().setValor_fechamento(valorTotal);</span>
+
+			try {
+<span class="nc" id="L136">				caixas.save(caixaAtual.get());</span>
+<span class="nc" id="L137">			} catch (Exception e) {</span>
+<span class="nc" id="L138">				throw new RuntimeException(&quot;Ocorreu um erro ao fechar o caixa, chame o suporte&quot;);</span>
+<span class="nc" id="L139">			}</span>
+
+<span class="nc" id="L141">			return &quot;Caixa fechado com sucesso&quot;;</span>
+
+		} else {
+<span class="nc" id="L144">			return &quot;Senha incorreta, favor verifique&quot;;</span>
+		}
+	}
+
+	public boolean caixaIsAberto() {
+<span class="nc" id="L149">		return caixas.caixaAberto().isPresent();</span>
+	}
+
+	public List&lt;Caixa&gt; listaTodos() {
+<span class="nc" id="L153">		return caixas.findByCodigoOrdenado();</span>
+	}
+
+	public List&lt;Caixa&gt; listarCaixas(CaixaFilter filter) {
+<span class="nc bnc" id="L157" title="All 2 branches missed.">		if (filter.getData_cadastro() != null) {</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">			if (!filter.getData_cadastro().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L159">				filter.setData_cadastro(filter.getData_cadastro().replace(&quot;/&quot;, &quot;-&quot;));</span>
+<span class="nc" id="L160">				return caixas.buscaCaixasPorDataAbertura(Date.valueOf(filter.getData_cadastro()));</span>
+			}
+		}
+		
+<span class="nc" id="L164">		return caixas.listaCaixasAbertos();</span>
+	}
+
+	public Optional&lt;Caixa&gt; caixaAberto() {
+<span class="nc" id="L168">		return caixas.caixaAberto();</span>
+	}
+
+	public List&lt;Caixa&gt; caixasAbertos() {
+<span class="nc" id="L172">		return caixas.caixasAbertos();</span>
+	}
+
+	public Optional&lt;Caixa&gt; busca(Long codigo) {
+<span class="nc" id="L176">		return caixas.findById(codigo);</span>
+	}
+
+	// pega o caixa aberto do usuário informado
+	public Optional&lt;Caixa&gt; buscaCaixaUsuario(String usuario) {
+<span class="nc" id="L181">		Usuario usu = usuarios.buscaUsuario(usuario);</span>
+<span class="nc" id="L182">		Optional&lt;Caixa&gt; caixaOptional = Optional.ofNullable(caixas.findByCaixaAbertoUsuario(usu.getCodigo()));</span>
+<span class="nc" id="L183">		return caixaOptional;</span>
+	}
+
+	public List&lt;Caixa&gt; listaBancos() {
+<span class="nc" id="L187">		return caixas.buscaBancos(CaixaTipo.BANCO);</span>
+	}
+
+	public List&lt;Caixa&gt; listaCaixasAbertosTipo(CaixaTipo tipo) {
+<span class="nc" id="L191">		return caixas.buscaCaixaTipo(tipo);</span>
+	}
+
+	public List&lt;Caixa&gt; listaBancosAbertosTipoFilterBanco(CaixaTipo tipo, BancoFilter filter) {
+<span class="nc bnc" id="L195" title="All 2 branches missed.">		if (filter.getData_cadastro() != null) {</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">			if (!filter.getData_cadastro().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L197">				filter.setData_cadastro(filter.getData_cadastro().replace(&quot;/&quot;, &quot;-&quot;));</span>
+<span class="nc" id="L198">				return caixas.buscaCaixaTipoData(tipo, Date.valueOf(filter.getData_cadastro()));</span>
+			}
+		}
+
+<span class="nc" id="L202">		return caixas.buscaCaixaTipo(CaixaTipo.BANCO);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

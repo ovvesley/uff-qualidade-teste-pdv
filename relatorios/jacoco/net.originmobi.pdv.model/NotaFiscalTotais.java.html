@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotaFiscalTotais.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">NotaFiscalTotais.java</span></div><h1>NotaFiscalTotais.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+import org.springframework.format.annotation.NumberFormat;
+
+@Entity
+public class NotaFiscalTotais implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_bc;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_icms;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_st;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_prod;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_frete;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_seg;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_desc;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_ii;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_ipi;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_pis;
+
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	@Column(name = &quot;v_cofins&quot;)
+	private Double v_cofins;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_outros;
+	
+	@NumberFormat(pattern = &quot;R$ #,##0.00&quot;)
+	private Double v_nf;
+
+	@Deprecated
+	public NotaFiscalTotais() {
+<span class="fc" id="L64">		super();</span>
+<span class="fc" id="L65">	}</span>
+
+	public NotaFiscalTotais(Double v_bc, Double v_icms, Double v_st, Double v_prod, Double v_frete, Double v_seg,
+			Double v_desc, Double v_ii, Double v_ipi, Double v_pis, Double v_cofins, Double v_outros, Double v_nf) {
+<span class="nc" id="L69">		super();</span>
+<span class="nc" id="L70">		this.v_bc = v_bc;</span>
+<span class="nc" id="L71">		this.v_icms = v_icms;</span>
+<span class="nc" id="L72">		this.v_st = v_st;</span>
+<span class="nc" id="L73">		this.v_prod = v_prod;</span>
+<span class="nc" id="L74">		this.v_frete = v_frete;</span>
+<span class="nc" id="L75">		this.v_seg = v_seg;</span>
+<span class="nc" id="L76">		this.v_desc = v_desc;</span>
+<span class="nc" id="L77">		this.v_ii = v_ii;</span>
+<span class="nc" id="L78">		this.v_ipi = v_ipi;</span>
+<span class="nc" id="L79">		this.v_pis = v_pis;</span>
+<span class="nc" id="L80">		this.v_cofins = v_cofins;</span>
+<span class="nc" id="L81">		this.v_outros = v_outros;</span>
+<span class="nc" id="L82">		this.v_nf = v_nf;</span>
+<span class="nc" id="L83">	}</span>
+
+	public Long getCodigo() {
+<span class="nc" id="L86">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L90">		this.codigo = codigo;</span>
+<span class="nc" id="L91">	}</span>
+
+	public Double getV_bc() {
+<span class="nc" id="L94">		return v_bc;</span>
+	}
+
+	public void setV_bc(Double v_bc) {
+<span class="nc" id="L98">		this.v_bc = v_bc;</span>
+<span class="nc" id="L99">	}</span>
+
+	public Double getV_icms() {
+<span class="nc" id="L102">		return v_icms;</span>
+	}
+
+	public void setV_icms(Double v_icms) {
+<span class="nc" id="L106">		this.v_icms = v_icms;</span>
+<span class="nc" id="L107">	}</span>
+
+	public Double getV_st() {
+<span class="nc" id="L110">		return v_st;</span>
+	}
+
+	public void setV_st(Double v_st) {
+<span class="nc" id="L114">		this.v_st = v_st;</span>
+<span class="nc" id="L115">	}</span>
+
+	public Double getV_prod() {
+<span class="nc" id="L118">		return v_prod;</span>
+	}
+
+	public void setV_prod(Double v_prod) {
+<span class="nc" id="L122">		this.v_prod = v_prod;</span>
+<span class="nc" id="L123">	}</span>
+
+	public Double getV_frete() {
+<span class="nc" id="L126">		return v_frete;</span>
+	}
+
+	public void setV_frete(Double v_frete) {
+<span class="nc" id="L130">		this.v_frete = v_frete;</span>
+<span class="nc" id="L131">	}</span>
+
+	public Double getV_seg() {
+<span class="nc" id="L134">		return v_seg;</span>
+	}
+
+	public void setV_seg(Double v_seg) {
+<span class="nc" id="L138">		this.v_seg = v_seg;</span>
+<span class="nc" id="L139">	}</span>
+
+	public Double getV_desc() {
+<span class="nc" id="L142">		return v_desc;</span>
+	}
+
+	public void setV_desc(Double v_desc) {
+<span class="nc" id="L146">		this.v_desc = v_desc;</span>
+<span class="nc" id="L147">	}</span>
+
+	public Double getV_ii() {
+<span class="nc" id="L150">		return v_ii;</span>
+	}
+
+	public void setV_ii(Double v_ii) {
+<span class="nc" id="L154">		this.v_ii = v_ii;</span>
+<span class="nc" id="L155">	}</span>
+
+	public Double getV_ipi() {
+<span class="nc" id="L158">		return v_ipi;</span>
+	}
+
+	public void setV_ipi(Double v_ipi) {
+<span class="nc" id="L162">		this.v_ipi = v_ipi;</span>
+<span class="nc" id="L163">	}</span>
+
+	public Double getV_pis() {
+<span class="nc" id="L166">		return v_pis;</span>
+	}
+
+	public void setV_pis(Double v_pis) {
+<span class="nc" id="L170">		this.v_pis = v_pis;</span>
+<span class="nc" id="L171">	}</span>
+
+	public Double getV_cofins() {
+<span class="nc" id="L174">		return v_cofins;</span>
+	}
+
+	public void setV_cofins(Double v_cofins) {
+<span class="nc" id="L178">		this.v_cofins = v_cofins;</span>
+<span class="nc" id="L179">	}</span>
+
+	public Double getV_outros() {
+<span class="nc" id="L182">		return v_outros;</span>
+	}
+
+	public void setV_outros(Double v_outros) {
+<span class="nc" id="L186">		this.v_outros = v_outros;</span>
+<span class="nc" id="L187">	}</span>
+
+	public Double getV_nf() {
+<span class="nc" id="L190">		return v_nf;</span>
+	}
+
+	public void setV_nf(Double v_nf) {
+<span class="nc" id="L194">		this.v_nf = v_nf;</span>
+<span class="nc" id="L195">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

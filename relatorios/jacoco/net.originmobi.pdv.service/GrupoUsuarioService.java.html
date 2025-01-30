@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GrupoUsuarioService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.service</a> &gt; <span class="el_source">GrupoUsuarioService.java</span></div><h1>GrupoUsuarioService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import net.originmobi.pdv.model.GrupoUsuario;
+import net.originmobi.pdv.model.Usuario;
+import net.originmobi.pdv.repository.GrupoUsuarioRepository;
+
+@Service
+<span class="fc" id="L14">public class GrupoUsuarioService {</span>
+
+	@Autowired
+	private GrupoUsuarioRepository grupousuarios;
+
+	public List&lt;GrupoUsuario&gt; buscaGrupos(Usuario usuario) {
+<span class="fc" id="L20">		return grupousuarios.findByUsuarioIn(usuario);</span>
+	}
+
+	public List&lt;GrupoUsuario&gt; lista() {
+<span class="fc" id="L24">		return grupousuarios.findAll();</span>
+	}
+
+	public GrupoUsuario buscaGrupo(Long codigoGru) {
+<span class="fc" id="L28">		return grupousuarios.findByCodigoIn(codigoGru);</span>
+	}
+
+	public void merge(GrupoUsuario grupoUsuario, RedirectAttributes attributes) {
+
+<span class="fc bfc" id="L33" title="All 2 branches covered.">		if (grupoUsuario.getCodigo() == null) {</span>
+			try {
+<span class="fc" id="L35">				attributes.addFlashAttribute(&quot;mensagem&quot;, &quot;Grupo adicionado com sucesso&quot;);</span>
+<span class="fc" id="L36">				grupousuarios.save(grupoUsuario);</span>
+<span class="nc" id="L37">			} catch (Exception e) {</span>
+<span class="nc" id="L38">				System.out.println(e);</span>
+<span class="pc" id="L39">			}</span>
+
+		} else {
+<span class="fc" id="L42">			attributes.addFlashAttribute(&quot;mensagem&quot;, &quot;Grupo atualizado com sucesso&quot;);</span>
+<span class="fc" id="L43">			grupousuarios.update(grupoUsuario.getNome(), grupoUsuario.getDescricao(), grupoUsuario.getCodigo());</span>
+		}
+
+<span class="fc" id="L46">	}</span>
+
+	public String remove(Long codigo, RedirectAttributes attributes) {
+		// verifico se o grupo esta vinculado a algum usuário
+<span class="fc" id="L50">		int aux = grupousuarios.grupoTemUsuaio(codigo);</span>
+
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		if (aux &gt; 0) {</span>
+<span class="fc" id="L53">			attributes.addFlashAttribute(&quot;mensagemErro&quot;, &quot;Este grupo possue usuários vinculados a ele, verifique&quot;);</span>
+<span class="fc" id="L54">			return &quot;redirect:/grupousuario/&quot; + codigo;</span>
+		}
+
+		try {
+<span class="fc" id="L58">			grupousuarios.deleteById(codigo);</span>
+<span class="nc" id="L59">		} catch (Exception e) {</span>
+<span class="nc" id="L60">			System.out.println(e);</span>
+<span class="fc" id="L61">		}</span>
+
+<span class="fc" id="L63">		return &quot;redirect:/grupousuario&quot;;</span>
+	}
+
+	public String addPermissao(Long codgrupo, Long codpermissao) {
+
+<span class="fc" id="L68">		int aux = grupousuarios.grupoTemPermissao(codgrupo, codpermissao);</span>
+		
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		if (aux &gt; 0)</span>
+<span class="fc" id="L71">			throw new RuntimeException(&quot;Esta permissão já esta adicionada a este grupo&quot;);</span>
+
+		try {
+<span class="fc" id="L74">			grupousuarios.addPermissao(codgrupo, codpermissao);</span>
+<span class="nc" id="L75">		} catch (Exception e) {</span>
+<span class="nc" id="L76">			System.out.println(e);</span>
+<span class="nc" id="L77">			throw new RuntimeException(&quot;Erro ao tentar adicionar permissão, chame o suporte&quot;);</span>
+<span class="fc" id="L78">		}</span>
+
+<span class="fc" id="L80">		return &quot;Permissao adicionada com sucesso&quot;;</span>
+	}
+
+	public String removePermissao(Long codigo, Long codgrupo) {
+		try {
+<span class="fc" id="L85">			grupousuarios.removePermissao(codigo, codgrupo);</span>
+<span class="fc" id="L86">		} catch (Exception e) {</span>
+<span class="fc" id="L87">			throw new RuntimeException(&quot;Erro ao tentar remover permissão, chame o suporte&quot;);</span>
+<span class="fc" id="L88">		}</span>
+<span class="fc" id="L89">		return &quot;Permissão removida com sucesso&quot;;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

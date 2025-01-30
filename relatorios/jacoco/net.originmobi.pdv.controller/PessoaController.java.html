@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PessoaController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.controller</a> &gt; <span class="el_source">PessoaController.java</span></div><h1>PessoaController.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.controller;
+
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import net.originmobi.pdv.enumerado.PessoaTipo;
+import net.originmobi.pdv.enumerado.TelefoneTipo;
+import net.originmobi.pdv.filter.PessoaFilter;
+import net.originmobi.pdv.model.Cidade;
+import net.originmobi.pdv.model.Endereco;
+import net.originmobi.pdv.model.Pessoa;
+import net.originmobi.pdv.model.Telefone;
+import net.originmobi.pdv.service.CidadeService;
+import net.originmobi.pdv.service.EnderecoService;
+import net.originmobi.pdv.service.PessoaService;
+import net.originmobi.pdv.service.TelefoneService;
+
+@Controller
+@RequestMapping(&quot;/pessoa&quot;)
+<span class="fc" id="L34">public class PessoaController {</span>
+
+	private static final String PESSOA_LISTA = &quot;pessoa/list&quot;;
+	private static final String PESSOA_FORM = &quot;pessoa/form&quot;;
+
+	@Autowired
+	private PessoaService pessoas;
+
+	@Autowired
+	private CidadeService cidades;
+
+	@Autowired
+	private EnderecoService enderecos;
+
+	@Autowired
+	private TelefoneService telefones;
+
+	@GetMapping(&quot;/form&quot;)
+	public ModelAndView form() {
+<span class="nc" id="L53">		ModelAndView mv = new ModelAndView(PESSOA_FORM);</span>
+<span class="nc" id="L54">		mv.addObject(new Pessoa());</span>
+<span class="nc" id="L55">		mv.addObject(new Endereco());</span>
+<span class="nc" id="L56">		mv.addObject(new Telefone());</span>
+<span class="nc" id="L57">		return mv;</span>
+	}
+
+	@GetMapping
+	public ModelAndView listar(@ModelAttribute(&quot;filter&quot;) PessoaFilter filter) {
+<span class="nc" id="L62">		ModelAndView mv = new ModelAndView(PESSOA_LISTA);</span>
+<span class="nc" id="L63">		mv.addObject(&quot;pessoas&quot;, pessoas.filter(filter));</span>
+<span class="nc" id="L64">		return mv;</span>
+	}
+
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody String cadastrar(@RequestParam Map&lt;String, String&gt; request, RedirectAttributes attributes) throws ParseException {
+		// Pessoa
+<span class="nc bnc" id="L70" title="All 2 branches missed.">		String stCodPessoa = request.get(&quot;codigo&quot;) != null ? request.get(&quot;codigo&quot;) : &quot;&quot;;</span>
+<span class="nc" id="L71">		String nome = request.get(&quot;nome&quot;);</span>
+<span class="nc" id="L72">		String apelido = request.get(&quot;apelido&quot;);</span>
+<span class="nc" id="L73">		String cpfcnpj = request.get(&quot;cpfcnpj&quot;).replaceAll(&quot;\\D&quot;, &quot;&quot;);</span>
+<span class="nc" id="L74">		String data_nascimento = request.get(&quot;data_nascimento&quot;);</span>
+<span class="nc" id="L75">		String observacao = request.get(&quot;observacao&quot;);</span>
+		
+		// Endereço
+<span class="nc bnc" id="L78" title="All 2 branches missed.">		String stCodEndereco = request.get(&quot;codendereco&quot;) != null ? request.get(&quot;codendereco&quot;) : &quot;&quot;;</span>
+<span class="nc" id="L79">		Long codcidade = Long.decode(request.get(&quot;cidade&quot;));</span>
+<span class="nc" id="L80">		String rua = request.get(&quot;rua&quot;);</span>
+<span class="nc" id="L81">		String bairro = request.get(&quot;bairro&quot;);</span>
+<span class="nc" id="L82">		String numero = request.get(&quot;numero&quot;);</span>
+<span class="nc" id="L83">		String cep = request.get(&quot;cep&quot;);</span>
+<span class="nc" id="L84">		String referencia = request.get(&quot;referencia&quot;);</span>
+
+		// Fone
+<span class="nc bnc" id="L87" title="All 2 branches missed.">		String stCodFone = request.get(&quot;codfone&quot;) != null ? request.get(&quot;codfone&quot;) : &quot;&quot;;</span>
+<span class="nc" id="L88">		String fone = request.get(&quot;fone&quot;);</span>
+<span class="nc" id="L89">		String tipo = request.get(&quot;tipo&quot;);</span>
+
+<span class="nc bnc" id="L91" title="All 2 branches missed.">		Long codpessoa = stCodPessoa.isEmpty() ? 0L : Long.decode(stCodPessoa);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">		Long codendereco = stCodEndereco.isEmpty() ? 0L : Long.decode(stCodEndereco);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">		Long codfone = stCodFone.isEmpty() ? 0L : Long.decode(stCodFone);</span>
+
+<span class="nc" id="L95">		return pessoas.cadastrar(codpessoa, nome, apelido, cpfcnpj, data_nascimento, observacao, codendereco, codcidade, rua,</span>
+				bairro, numero, cep, referencia, codfone, fone, tipo, attributes);
+	}
+
+	@GetMapping(&quot;{codigo}&quot;)
+	public ModelAndView edite(@PathVariable(&quot;codigo&quot;) Pessoa pessoa) {
+<span class="nc" id="L101">		ModelAndView mv = new ModelAndView(PESSOA_FORM);</span>
+<span class="nc" id="L102">		mv.addObject(pessoa);</span>
+<span class="nc" id="L103">		mv.addObject(&quot;endereco&quot;, enderecos.enderecoCodigo(pessoa.getEndereco().getCodigo()));</span>
+<span class="nc" id="L104">		mv.addObject(&quot;telefone&quot;, telefones.telefoneCodigo(pessoa.getTelefone().get(0).getCodigo()));</span>
+<span class="nc" id="L105">		return mv;</span>
+	}
+
+	@RequestMapping(value = &quot;/{codigo}&quot;, method = RequestMethod.PUT)
+	public @ResponseBody Pessoa busca(@PathVariable(&quot;codigo&quot;) Long codigo) {
+<span class="nc" id="L110">		return pessoas.busca(codigo);</span>
+	}
+
+	@ModelAttribute(&quot;tipoPessoa&quot;)
+	public List&lt;PessoaTipo&gt; pessoaTipo() {
+<span class="nc" id="L115">		return Arrays.asList(PessoaTipo.values());</span>
+	}
+
+	@ModelAttribute(&quot;cidades&quot;)
+	public List&lt;Cidade&gt; cidades() {
+<span class="nc" id="L120">		return cidades.lista();</span>
+	}
+
+	@ModelAttribute(&quot;telefoneTipo&quot;)
+	public List&lt;TelefoneTipo&gt; telefoneTipo() {
+<span class="nc" id="L125">		return Arrays.asList(TelefoneTipo.values());</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

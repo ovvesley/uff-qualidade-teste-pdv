@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Pessoa.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">Pessoa.java</span></div><h1>Pessoa.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+import java.sql.Date;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+@Entity
+public class Pessoa implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	@NotBlank(message = &quot;nome não pode ser vazio&quot;)
+	@Size(min = 5, max = 250)
+	private String nome;
+
+	@Size(max = 250)
+	private String apelido;
+
+	@Column(unique = true)
+	private String cpfcnpj;
+
+	private String observacao;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_nascimento;
+	private Date data_cadastro;
+
+	@ManyToOne
+	@JoinColumn(name = &quot;endereco_codigo&quot;)
+	private Endereco endereco;
+
+	@OneToMany
+	private List&lt;Telefone&gt; telefone;
+
+<span class="fc" id="L52">	public Pessoa() {</span>
+<span class="fc" id="L53">	}</span>
+
+	public Pessoa(String nome, String apelido, String cpfcnpj, String observacao, Date data_cadastro,
+<span class="nc" id="L56">			Date data_nascimento, Endereco endereco, List&lt;Telefone&gt; telefone) {</span>
+<span class="nc" id="L57">		this.nome = nome;</span>
+<span class="nc" id="L58">		this.apelido = apelido;</span>
+<span class="nc" id="L59">		this.cpfcnpj = cpfcnpj;</span>
+<span class="nc" id="L60">		this.observacao = observacao;</span>
+<span class="nc" id="L61">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L62">		this.data_nascimento = data_nascimento;</span>
+<span class="nc" id="L63">		this.endereco = endereco;</span>
+<span class="nc" id="L64">		this.telefone = telefone;</span>
+<span class="nc" id="L65">	}</span>
+
+	public Long getCodigo() {
+<span class="nc" id="L68">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L72">		this.codigo = codigo;</span>
+<span class="nc" id="L73">	}</span>
+
+	public String getNome() {
+<span class="nc" id="L76">		return nome;</span>
+	}
+
+	public void setNome(String nome) {
+<span class="nc" id="L80">		this.nome = nome;</span>
+<span class="nc" id="L81">	}</span>
+
+	public String getApelido() {
+<span class="nc" id="L84">		return apelido;</span>
+	}
+
+	public void setApelido(String apelido) {
+<span class="nc" id="L88">		this.apelido = apelido;</span>
+<span class="nc" id="L89">	}</span>
+
+	public String getCpfcnpj() {
+<span class="nc" id="L92">		return cpfcnpj;</span>
+	}
+
+	public void setCpfcnpj(String cpfcnpj) {
+<span class="nc" id="L96">		this.cpfcnpj = cpfcnpj;</span>
+<span class="nc" id="L97">	}</span>
+
+	public String getObservacao() {
+<span class="nc" id="L100">		return observacao;</span>
+	}
+
+	public void setObservacao(String observacao) {
+<span class="nc" id="L104">		this.observacao = observacao;</span>
+<span class="nc" id="L105">	}</span>
+
+	public Date getData_cadastro() {
+<span class="nc" id="L108">		return data_cadastro;</span>
+	}
+
+	public void setData_cadastro(Date data_cadastro) {
+<span class="nc" id="L112">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L113">	}</span>
+
+	public Date getData_nascimento() {
+<span class="nc" id="L116">		return data_nascimento;</span>
+	}
+
+	public void setData_nascimento(Date data_nascimento) {
+<span class="nc" id="L120">		this.data_nascimento = data_nascimento;</span>
+<span class="nc" id="L121">	}</span>
+
+	public Endereco getEndereco() {
+<span class="nc" id="L124">		return endereco;</span>
+	}
+
+	public void setEndereco(Endereco endereco) {
+<span class="nc" id="L128">		this.endereco = endereco;</span>
+<span class="nc" id="L129">	}</span>
+
+	public List&lt;Telefone&gt; getTelefone() {
+<span class="nc" id="L132">		return telefone;</span>
+	}
+
+	public void setTelefone(List&lt;Telefone&gt; telefone) {
+<span class="nc" id="L136">		this.telefone = telefone;</span>
+<span class="nc" id="L137">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

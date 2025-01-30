@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AssinaXML.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.xml.nfe</a> &gt; <span class="el_source">AssinaXML.java</span></div><h1>AssinaXML.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.xml.nfe;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.crypto.dsig.DigestMethod;
+import javax.xml.crypto.dsig.Reference;
+import javax.xml.crypto.dsig.SignatureMethod;
+import javax.xml.crypto.dsig.SignedInfo;
+import javax.xml.crypto.dsig.Transform;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.dsig.dom.DOMSignContext;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
+import javax.xml.crypto.dsig.keyinfo.X509Data;
+import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
+import javax.xml.crypto.dsig.spec.TransformParameterSpec;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+<span class="nc" id="L45">public class AssinaXML {</span>
+	private static final String NFE = &quot;NFe&quot;;
+
+	private PrivateKey privateKey;
+	private KeyInfo keyInfo;
+
+	public String assinaXML(String xml) {
+<span class="nc" id="L52">		String path = &quot;&quot;;</span>
+
+		try {
+<span class="nc" id="L55">			path = new File(&quot;.&quot;).getCanonicalPath();</span>
+<span class="nc" id="L56">		} catch (Exception e) {</span>
+<span class="nc" id="L57">			System.out.println(e);</span>
+<span class="nc" id="L58">		}</span>
+
+<span class="nc" id="L60">		String caminhoCertificado = path + &quot;/&quot; + &quot;src/main/resources/certificado/certificado.pfx&quot;;</span>
+<span class="nc" id="L61">		String senhaCertificado = &quot;spcbrasil&quot;;</span>
+
+<span class="nc" id="L63">		String xmlAssinado = &quot;&quot;;</span>
+		try {
+<span class="nc" id="L65">			xmlAssinado = assinarEnviNFe(xml, caminhoCertificado, senhaCertificado);</span>
+<span class="nc" id="L66">			System.out.println(xmlAssinado);</span>
+<span class="nc" id="L67">		} catch (Exception e) {</span>
+<span class="nc" id="L68">			e.printStackTrace();</span>
+<span class="nc" id="L69">			System.out.println(e);</span>
+<span class="nc" id="L70">		}</span>
+
+<span class="nc" id="L72">		return xmlAssinado;</span>
+	}
+
+	private String assinarEnviNFe(String xmlEnviNFe, String caminhoCertificado, String senhaCertificado)
+			throws Exception {
+<span class="nc" id="L77">		Document document = documentFactory(xmlEnviNFe);</span>
+<span class="nc" id="L78">		XMLSignatureFactory signatureFactory = XMLSignatureFactory.getInstance(&quot;DOM&quot;);</span>
+<span class="nc" id="L79">		ArrayList&lt;Transform&gt; transformList = signatureFactory(signatureFactory);</span>
+<span class="nc" id="L80">		loadCertificates(caminhoCertificado, senhaCertificado, signatureFactory);</span>
+
+<span class="nc bnc" id="L82" title="All 2 branches missed.">		for (int i = 0; i &lt; document.getDocumentElement().getElementsByTagName(NFE).getLength(); i++) {</span>
+<span class="nc" id="L83">			assinarNFe(signatureFactory, transformList, privateKey, keyInfo, document, i);</span>
+		}
+
+<span class="nc" id="L86">		return outputXML(document);</span>
+	}
+
+	private Document documentFactory(String xml) throws SAXException, IOException, ParserConfigurationException {
+<span class="nc" id="L90">		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();</span>
+<span class="nc" id="L91">		factory.setNamespaceAware(true);</span>
+<span class="nc" id="L92">		Document document = factory.newDocumentBuilder().parse(new ByteArrayInputStream(xml.getBytes()));</span>
+<span class="nc" id="L93">		return document;</span>
+	}
+
+	private ArrayList&lt;Transform&gt; signatureFactory(XMLSignatureFactory signatureFactory)
+			throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+<span class="nc" id="L98">		ArrayList&lt;Transform&gt; transformList = new ArrayList&lt;Transform&gt;();</span>
+<span class="nc" id="L99">		TransformParameterSpec tps = null;</span>
+<span class="nc" id="L100">		Transform envelopedTransform = signatureFactory.newTransform(Transform.ENVELOPED, tps);</span>
+<span class="nc" id="L101">		Transform c14NTransform = signatureFactory.newTransform(&quot;http://www.w3.org/TR/2001/REC-xml-c14n-20010315&quot;, tps);</span>
+
+<span class="nc" id="L103">		transformList.add(envelopedTransform);</span>
+<span class="nc" id="L104">		transformList.add(c14NTransform);</span>
+<span class="nc" id="L105">		return transformList;</span>
+	}
+
+	private void loadCertificates(String certificado, String senha, XMLSignatureFactory signatureFactory)
+			throws Exception {
+
+<span class="nc" id="L111">		InputStream entrada = new FileInputStream(certificado);</span>
+<span class="nc" id="L112">		KeyStore ks = KeyStore.getInstance(&quot;pkcs12&quot;);</span>
+		try {
+<span class="nc" id="L114">			ks.load(entrada, senha.toCharArray());</span>
+<span class="nc" id="L115">		} catch (IOException e) {</span>
+<span class="nc" id="L116">			throw new Exception(&quot;Senha do Certificado Digital incorreta ou Certificado inválido.&quot;);</span>
+<span class="nc" id="L117">		}</span>
+
+<span class="nc" id="L119">		KeyStore.PrivateKeyEntry pkEntry = null;</span>
+<span class="nc" id="L120">		Enumeration&lt;String&gt; aliasesEnum = ks.aliases();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">		while (aliasesEnum.hasMoreElements()) {</span>
+<span class="nc" id="L122">			String alias = (String) aliasesEnum.nextElement();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">			if (ks.isKeyEntry(alias)) {</span>
+<span class="nc" id="L124">				pkEntry = (KeyStore.PrivateKeyEntry) ks.getEntry(alias,</span>
+<span class="nc" id="L125">						new KeyStore.PasswordProtection(senha.toCharArray()));</span>
+<span class="nc" id="L126">				privateKey = pkEntry.getPrivateKey();</span>
+<span class="nc" id="L127">				break;</span>
+			}
+<span class="nc" id="L129">		}</span>
+
+<span class="nc" id="L131">		X509Certificate cert = (X509Certificate) pkEntry.getCertificate();</span>
+<span class="nc" id="L132">		System.out.println(&quot;Data Certificado &quot; + cert.getNotAfter());</span>
+
+<span class="nc" id="L134">		KeyInfoFactory keyInfoFactory = signatureFactory.getKeyInfoFactory();</span>
+<span class="nc" id="L135">		List&lt;X509Certificate&gt; x509Content = new ArrayList&lt;X509Certificate&gt;();</span>
+
+<span class="nc" id="L137">		x509Content.add(cert);</span>
+<span class="nc" id="L138">		X509Data x509Data = keyInfoFactory.newX509Data(x509Content);</span>
+<span class="nc" id="L139">		keyInfo = keyInfoFactory.newKeyInfo(Collections.singletonList(x509Data));</span>
+<span class="nc" id="L140">	}</span>
+
+	private void assinarNFe(XMLSignatureFactory fac, ArrayList&lt;Transform&gt; transformList, PrivateKey privateKey,
+			KeyInfo ki, Document document, int indexNFe) throws Exception {
+
+<span class="nc" id="L145">		NodeList elements = document.getElementsByTagName(&quot;infNFe&quot;);</span>
+<span class="nc" id="L146">		org.w3c.dom.Element el = (org.w3c.dom.Element) elements.item(indexNFe);</span>
+<span class="nc" id="L147">		String id = el.getAttribute(&quot;Id&quot;);</span>
+<span class="nc" id="L148">		el.setIdAttribute(&quot;Id&quot;, true);</span>
+
+<span class="nc" id="L150">		Reference ref = fac.newReference(&quot;#&quot; + id, fac.newDigestMethod(DigestMethod.SHA1, null), transformList, null,</span>
+				null);
+
+<span class="nc" id="L153">		SignedInfo si = fac.newSignedInfo(</span>
+<span class="nc" id="L154">				fac.newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE, (C14NMethodParameterSpec) null),</span>
+<span class="nc" id="L155">				fac.newSignatureMethod(SignatureMethod.RSA_SHA1, null), Collections.singletonList(ref));</span>
+
+<span class="nc" id="L157">		XMLSignature signature = fac.newXMLSignature(si, ki);</span>
+
+<span class="nc" id="L159">		DOMSignContext dsc = new DOMSignContext(privateKey,</span>
+<span class="nc" id="L160">				document.getDocumentElement().getElementsByTagName(NFE).item(indexNFe));</span>
+<span class="nc" id="L161">		signature.sign(dsc);</span>
+<span class="nc" id="L162">	}</span>
+
+	private String outputXML(Document doc) throws TransformerException {
+<span class="nc" id="L165">		ByteArrayOutputStream os = new ByteArrayOutputStream();</span>
+<span class="nc" id="L166">		TransformerFactory tf = TransformerFactory.newInstance();</span>
+<span class="nc" id="L167">		Transformer trans = tf.newTransformer();</span>
+<span class="nc" id="L168">		trans.transform(new DOMSource(doc), new StreamResult(os));</span>
+<span class="nc" id="L169">		String xml = os.toString();</span>
+<span class="nc bnc" id="L170" title="All 4 branches missed.">		if ((xml != null) &amp;&amp; (!&quot;&quot;.equals(xml))) {</span>
+<span class="nc" id="L171">			xml = xml.replaceAll(&quot;\\r\\n&quot;, &quot;&quot;);</span>
+<span class="nc" id="L172">			xml = xml.replaceAll(&quot; standalone=\&quot;no\&quot;&quot;, &quot;&quot;);</span>
+		}
+<span class="nc" id="L174">		return xml;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

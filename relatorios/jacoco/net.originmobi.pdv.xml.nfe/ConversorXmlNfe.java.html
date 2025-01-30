@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConversorXmlNfe.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.xml.nfe</a> &gt; <span class="el_source">ConversorXmlNfe.java</span></div><h1>ConversorXmlNfe.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.xml.nfe;
+
+import java.text.DecimalFormat;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+import net.originmobi.pdv.model.NotaFiscal;
+import net.originmobi.pdv.service.notafiscal.NotaFiscalService;
+
+<span class="nc" id="L16">public class ConversorXmlNfe implements Converter {</span>
+
+	public NotaFiscalService nfService;
+<span class="nc" id="L19">	private String chaveNfeRetorno = &quot;&quot;;</span>
+
+	@Override
+	public boolean canConvert(Class type) {
+<span class="nc" id="L23">		return type.equals(NotaFiscal.class);</span>
+	}
+
+	@Override
+	public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+<span class="nc" id="L28">		NotaFiscal notaFiscal = (NotaFiscal) source;</span>
+
+<span class="nc" id="L30">		DecimalFormat formato = new DecimalFormat(&quot;#0.00&quot;);</span>
+
+<span class="nc" id="L32">		String ufEmissor = notaFiscal.getEmissor().getEndereco().getCidade().getEstado().getCodigoUF();</span>
+<span class="nc" id="L33">		String cnpjEmissor = notaFiscal.getEmissor().getCnpj().replaceAll(&quot;\\D&quot;, &quot;&quot;);</span>
+<span class="nc" id="L34">		int tipoRegime = notaFiscal.getEmissor().getRegime_tributario().getTipoRegime();</span>
+
+		// gera cNF
+<span class="nc" id="L37">		int codAleatorio = (int) (10000000 + Math.random() * 89999999);</span>
+
+		// add zeros a esqueda na sequencia
+<span class="nc" id="L40">		String serie = StringUtils.leftPad(String.valueOf(notaFiscal.getEmissor().getParametro().getSerie_nfe()), 3,</span>
+				&quot;0&quot;);
+		// add zeros a esqueda no numero da nota
+<span class="nc" id="L43">		String numeroNf = StringUtils.leftPad(String.valueOf(notaFiscal.getNumero()), 9, &quot;0&quot;);</span>
+
+<span class="nc" id="L45">		String cNF = String.valueOf(codAleatorio);</span>
+
+		// cria chave acesso
+<span class="nc" id="L48">		String chaveNfe = ufEmissor + &quot;1805&quot; + cnpjEmissor + &quot;55&quot; + serie + numeroNf + 1 + cNF;</span>
+
+<span class="nc" id="L50">		nfService = new NotaFiscalService();</span>
+
+		// gera digito verificador
+<span class="nc" id="L53">		Integer cDV = nfService.geraDV(chaveNfe);</span>
+
+<span class="nc" id="L55">		chaveNfeRetorno = chaveNfe + cDV;</span>
+
+<span class="nc" id="L57">		writer.addAttribute(&quot;xmlns&quot;, &quot;http://www.portalfiscal.inf.br/nfe&quot;);</span>
+<span class="nc" id="L58">		writer.addAttribute(&quot;versao&quot;, &quot;3.10&quot;);</span>
+
+<span class="nc" id="L60">		writer.startNode(&quot;idLote&quot;);</span>
+<span class="nc" id="L61">		context.convertAnother(1);</span>
+<span class="nc" id="L62">		writer.endNode();</span>
+
+<span class="nc" id="L64">		writer.startNode(&quot;indSinc&quot;);</span>
+<span class="nc" id="L65">		context.convertAnother(0);</span>
+<span class="nc" id="L66">		writer.endNode();</span>
+
+<span class="nc" id="L68">		writer.startNode(&quot;NFe&quot;);</span>
+
+<span class="nc" id="L70">		writer.addAttribute(&quot;xmlns&quot;, &quot;http://www.portalfiscal.inf.br/nfe&quot;);</span>
+
+<span class="nc" id="L72">		writer.startNode(&quot;infNFe&quot;);</span>
+
+<span class="nc" id="L74">		writer.addAttribute(&quot;Id&quot;, &quot;NFe&quot; + chaveNfe + cDV);</span>
+<span class="nc" id="L75">		writer.addAttribute(&quot;versao&quot;, &quot;3.10&quot;);</span>
+
+<span class="nc" id="L77">		writer.startNode(&quot;ide&quot;);</span>
+
+<span class="nc" id="L79">		writer.startNode(&quot;cUF&quot;);</span>
+<span class="nc" id="L80">		context.convertAnother(ufEmissor);</span>
+<span class="nc" id="L81">		writer.endNode();</span>
+
+<span class="nc" id="L83">		writer.startNode(&quot;cNF&quot;);</span>
+<span class="nc" id="L84">		context.convertAnother(cNF);</span>
+<span class="nc" id="L85">		writer.endNode();</span>
+
+<span class="nc" id="L87">		writer.startNode(&quot;natOp&quot;);</span>
+<span class="nc" id="L88">		context.convertAnother(notaFiscal.getNatureza_operacao());</span>
+<span class="nc" id="L89">		writer.endNode();</span>
+
+<span class="nc" id="L91">		writer.startNode(&quot;indPag&quot;);</span>
+<span class="nc" id="L92">		context.convertAnother(0);</span>
+<span class="nc" id="L93">		writer.endNode();</span>
+
+<span class="nc" id="L95">		writer.startNode(&quot;mod&quot;);</span>
+<span class="nc" id="L96">		context.convertAnother(notaFiscal.getModelo());</span>
+<span class="nc" id="L97">		writer.endNode();</span>
+
+<span class="nc" id="L99">		writer.startNode(&quot;serie&quot;);</span>
+<span class="nc" id="L100">		context.convertAnother(notaFiscal.getSerie());</span>
+<span class="nc" id="L101">		writer.endNode();</span>
+
+<span class="nc" id="L103">		writer.startNode(&quot;nNF&quot;);</span>
+<span class="nc" id="L104">		context.convertAnother(notaFiscal.getNumero());</span>
+<span class="nc" id="L105">		writer.endNode();</span>
+
+<span class="nc" id="L107">		writer.startNode(&quot;dhEmi&quot;);</span>
+<span class="nc" id="L108">		context.convertAnother(&quot;2018-05-03T08:10:00-04:00&quot;);</span>
+<span class="nc" id="L109">		writer.endNode();</span>
+
+<span class="nc" id="L111">		writer.startNode(&quot;dhSaiEnt&quot;);</span>
+<span class="nc" id="L112">		context.convertAnother(&quot;2018-05-03T08:10:00-04:00&quot;);</span>
+<span class="nc" id="L113">		writer.endNode();</span>
+
+<span class="nc" id="L115">		writer.startNode(&quot;tpNF&quot;);</span>
+<span class="nc" id="L116">		context.convertAnother(notaFiscal.getTipo().ordinal());</span>
+<span class="nc" id="L117">		writer.endNode();</span>
+
+<span class="nc" id="L119">		writer.startNode(&quot;idDest&quot;);</span>
+<span class="nc" id="L120">		context.convertAnother(1);</span>
+<span class="nc" id="L121">		writer.endNode();</span>
+
+<span class="nc" id="L123">		writer.startNode(&quot;cMunFG&quot;);</span>
+<span class="nc" id="L124">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getCidade().getCodigo_municipio());</span>
+<span class="nc" id="L125">		writer.endNode();</span>
+
+<span class="nc" id="L127">		writer.startNode(&quot;tpImp&quot;);</span>
+<span class="nc" id="L128">		context.convertAnother(1);</span>
+<span class="nc" id="L129">		writer.endNode();</span>
+
+<span class="nc" id="L131">		writer.startNode(&quot;tpEmis&quot;);</span>
+<span class="nc" id="L132">		context.convertAnother(1);</span>
+<span class="nc" id="L133">		writer.endNode();</span>
+
+<span class="nc" id="L135">		writer.startNode(&quot;cDV&quot;);</span>
+<span class="nc" id="L136">		context.convertAnother(cDV);</span>
+<span class="nc" id="L137">		writer.endNode();</span>
+
+<span class="nc" id="L139">		writer.startNode(&quot;tpAmb&quot;);</span>
+<span class="nc" id="L140">		context.convertAnother(notaFiscal.getTipo_ambiente());</span>
+<span class="nc" id="L141">		writer.endNode();</span>
+
+<span class="nc" id="L143">		writer.startNode(&quot;finNFe&quot;);</span>
+<span class="nc" id="L144">		context.convertAnother(notaFiscal.getFinalidade().getTipo());</span>
+<span class="nc" id="L145">		writer.endNode();</span>
+
+<span class="nc" id="L147">		writer.startNode(&quot;indFinal&quot;);</span>
+<span class="nc" id="L148">		context.convertAnother(0); // 0 -- normal, 1 -- consumidor final</span>
+<span class="nc" id="L149">		writer.endNode();</span>
+
+<span class="nc" id="L151">		writer.startNode(&quot;indPres&quot;);</span>
+<span class="nc" id="L152">		context.convertAnother(1);</span>
+<span class="nc" id="L153">		writer.endNode();</span>
+
+<span class="nc" id="L155">		writer.startNode(&quot;procEmi&quot;);</span>
+<span class="nc" id="L156">		context.convertAnother(0);</span>
+<span class="nc" id="L157">		writer.endNode();</span>
+
+<span class="nc" id="L159">		writer.startNode(&quot;verProc&quot;);</span>
+<span class="nc" id="L160">		context.convertAnother(&quot;0.0.1&quot;);</span>
+<span class="nc" id="L161">		writer.endNode();</span>
+
+<span class="nc" id="L163">		writer.endNode(); // fim nod ide</span>
+
+<span class="nc" id="L165">		writer.startNode(&quot;emit&quot;);</span>
+
+<span class="nc" id="L167">		writer.startNode(&quot;CNPJ&quot;);</span>
+<span class="nc" id="L168">		context.convertAnother(cnpjEmissor);</span>
+<span class="nc" id="L169">		writer.endNode();</span>
+
+<span class="nc" id="L171">		writer.startNode(&quot;xNome&quot;);</span>
+<span class="nc" id="L172">		context.convertAnother(notaFiscal.getEmissor().getNome());</span>
+<span class="nc" id="L173">		writer.endNode();</span>
+
+<span class="nc" id="L175">		writer.startNode(&quot;xFant&quot;);</span>
+<span class="nc" id="L176">		context.convertAnother(notaFiscal.getEmissor().getNome_fantasia());</span>
+<span class="nc" id="L177">		writer.endNode();</span>
+
+<span class="nc" id="L179">		writer.startNode(&quot;enderEmit&quot;);</span>
+
+<span class="nc" id="L181">		writer.startNode(&quot;xLgr&quot;);</span>
+<span class="nc" id="L182">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getRua());</span>
+<span class="nc" id="L183">		writer.endNode();</span>
+
+<span class="nc" id="L185">		writer.startNode(&quot;nro&quot;);</span>
+<span class="nc" id="L186">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getNumero());</span>
+<span class="nc" id="L187">		writer.endNode();</span>
+
+<span class="nc" id="L189">		writer.startNode(&quot;xCpl&quot;);</span>
+<span class="nc" id="L190">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getReferencia());</span>
+<span class="nc" id="L191">		writer.endNode();</span>
+
+<span class="nc" id="L193">		writer.startNode(&quot;xBairro&quot;);</span>
+<span class="nc" id="L194">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getBairro());</span>
+<span class="nc" id="L195">		writer.endNode();</span>
+
+<span class="nc" id="L197">		writer.startNode(&quot;cMun&quot;);</span>
+<span class="nc" id="L198">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getCidade().getCodigo_municipio());</span>
+<span class="nc" id="L199">		writer.endNode();</span>
+
+<span class="nc" id="L201">		writer.startNode(&quot;xMun&quot;);</span>
+<span class="nc" id="L202">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getCidade().getNome());</span>
+<span class="nc" id="L203">		writer.endNode();</span>
+
+<span class="nc" id="L205">		writer.startNode(&quot;UF&quot;);</span>
+<span class="nc" id="L206">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getCidade().getEstado().getSigla());</span>
+<span class="nc" id="L207">		writer.endNode();</span>
+
+<span class="nc" id="L209">		writer.startNode(&quot;CEP&quot;);</span>
+<span class="nc" id="L210">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getCep());</span>
+<span class="nc" id="L211">		writer.endNode();</span>
+
+<span class="nc" id="L213">		writer.startNode(&quot;cPais&quot;);</span>
+<span class="nc" id="L214">		context.convertAnother(</span>
+<span class="nc" id="L215">				notaFiscal.getEmissor().getEndereco().getCidade().getEstado().getPais().getCodigo_pais());</span>
+<span class="nc" id="L216">		writer.endNode();</span>
+
+<span class="nc" id="L218">		writer.startNode(&quot;xPais&quot;);</span>
+<span class="nc" id="L219">		context.convertAnother(notaFiscal.getEmissor().getEndereco().getCidade().getEstado().getPais().getNome());</span>
+<span class="nc" id="L220">		writer.endNode();</span>
+
+<span class="nc" id="L222">		writer.endNode(); // fim not &lt;enderEmit&gt;</span>
+
+<span class="nc" id="L224">		writer.startNode(&quot;IE&quot;);</span>
+<span class="nc" id="L225">		context.convertAnother(notaFiscal.getEmissor().getIe());</span>
+<span class="nc" id="L226">		writer.endNode();</span>
+
+<span class="nc" id="L228">		writer.startNode(&quot;CRT&quot;);</span>
+<span class="nc" id="L229">		context.convertAnother(notaFiscal.getEmissor().getRegime_tributario().getTipoRegime());</span>
+<span class="nc" id="L230">		writer.endNode();</span>
+
+<span class="nc" id="L232">		writer.endNode(); // fim nod &lt;emit&gt;</span>
+
+<span class="nc" id="L234">		writer.startNode(&quot;dest&quot;);</span>
+
+<span class="nc" id="L236">		writer.startNode(&quot;CPF&quot;);</span>
+<span class="nc" id="L237">		context.convertAnother(notaFiscal.getDestinatario().getCpfcnpj().replaceAll(&quot;\\D&quot;, &quot;&quot;));</span>
+<span class="nc" id="L238">		writer.endNode();</span>
+
+<span class="nc" id="L240">		writer.startNode(&quot;xNome&quot;);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">		if (notaFiscal.getEmissor().getParametro().getAmbiente() == 2)</span>
+<span class="nc" id="L242">			context.convertAnother(&quot;NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL&quot;);</span>
+		else
+<span class="nc" id="L244">			context.convertAnother(notaFiscal.getDestinatario().getNome());</span>
+<span class="nc" id="L245">		writer.endNode();</span>
+
+<span class="nc" id="L247">		writer.startNode(&quot;enderDest&quot;);</span>
+
+<span class="nc" id="L249">		writer.startNode(&quot;xLgr&quot;);</span>
+<span class="nc" id="L250">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getRua());</span>
+<span class="nc" id="L251">		writer.endNode();</span>
+
+<span class="nc" id="L253">		writer.startNode(&quot;nro&quot;);</span>
+<span class="nc" id="L254">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getNumero());</span>
+<span class="nc" id="L255">		writer.endNode();</span>
+
+<span class="nc" id="L257">		writer.startNode(&quot;xCpl&quot;);</span>
+<span class="nc" id="L258">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getReferencia());</span>
+<span class="nc" id="L259">		writer.endNode();</span>
+
+<span class="nc" id="L261">		writer.startNode(&quot;xBairro&quot;);</span>
+<span class="nc" id="L262">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getBairro());</span>
+<span class="nc" id="L263">		writer.endNode();</span>
+
+<span class="nc" id="L265">		writer.startNode(&quot;cMun&quot;);</span>
+<span class="nc" id="L266">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getCidade().getCodigo_municipio());</span>
+<span class="nc" id="L267">		writer.endNode();</span>
+
+<span class="nc" id="L269">		writer.startNode(&quot;xMun&quot;);</span>
+<span class="nc" id="L270">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getCidade().getNome());</span>
+<span class="nc" id="L271">		writer.endNode();</span>
+
+<span class="nc" id="L273">		writer.startNode(&quot;UF&quot;);</span>
+<span class="nc" id="L274">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getCidade().getEstado().getSigla());</span>
+<span class="nc" id="L275">		writer.endNode();</span>
+
+<span class="nc" id="L277">		writer.startNode(&quot;CEP&quot;);</span>
+<span class="nc" id="L278">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getCep());</span>
+<span class="nc" id="L279">		writer.endNode();</span>
+
+<span class="nc" id="L281">		writer.startNode(&quot;cPais&quot;);</span>
+<span class="nc" id="L282">		context.convertAnother(</span>
+<span class="nc" id="L283">				notaFiscal.getDestinatario().getEndereco().getCidade().getEstado().getPais().getCodigo_pais());</span>
+<span class="nc" id="L284">		writer.endNode();</span>
+
+<span class="nc" id="L286">		writer.startNode(&quot;xPais&quot;);</span>
+<span class="nc" id="L287">		context.convertAnother(notaFiscal.getDestinatario().getEndereco().getCidade().getEstado().getPais().getNome());</span>
+<span class="nc" id="L288">		writer.endNode();</span>
+
+<span class="nc" id="L290">		writer.startNode(&quot;fone&quot;);</span>
+<span class="nc" id="L291">		context.convertAnother(notaFiscal.getDestinatario().getTelefone().get(0).getFone());</span>
+<span class="nc" id="L292">		writer.endNode();</span>
+
+<span class="nc" id="L294">		writer.endNode(); // fim node &lt;enderDest&gt;</span>
+
+<span class="nc" id="L296">		writer.startNode(&quot;indIEDest&quot;);</span>
+<span class="nc" id="L297">		context.convertAnother(2);</span>
+<span class="nc" id="L298">		writer.endNode();</span>
+
+		// writer.startNode(&quot;IE&quot;);
+		// writer.endNode(); // fim nod &lt;IE&gt;
+
+<span class="nc" id="L303">		writer.endNode(); // fim nod &lt;dest&gt;</span>
+
+<span class="nc bnc" id="L305" title="All 2 branches missed.">		for (int i = 0; i &lt; notaFiscal.getItens().size(); i++) {</span>
+<span class="nc" id="L306">			writer.startNode(&quot;det&quot;);</span>
+<span class="nc" id="L307">			writer.addAttribute(&quot;nItem&quot;, String.valueOf(i + 1));</span>
+
+<span class="nc" id="L309">			writer.startNode(&quot;prod&quot;);</span>
+
+<span class="nc" id="L311">			writer.startNode(&quot;cProd&quot;);</span>
+<span class="nc" id="L312">			context.convertAnother(notaFiscal.getItens().get(i).getCodigo());</span>
+<span class="nc" id="L313">			writer.endNode();</span>
+
+<span class="nc" id="L315">			writer.startNode(&quot;cEAN&quot;);</span>
+<span class="nc" id="L316">			context.convertAnother(&quot;&quot;);</span>
+<span class="nc" id="L317">			writer.endNode();</span>
+
+<span class="nc" id="L319">			writer.startNode(&quot;xProd&quot;);</span>
+<span class="nc" id="L320">			context.convertAnother(&quot;teste &quot; + String.valueOf(i + 1));</span>
+<span class="nc" id="L321">			writer.endNode();</span>
+
+<span class="nc" id="L323">			writer.startNode(&quot;NCM&quot;);</span>
+<span class="nc" id="L324">			context.convertAnother(21050010);</span>
+<span class="nc" id="L325">			writer.endNode();</span>
+
+<span class="nc" id="L327">			writer.startNode(&quot;CFOP&quot;);</span>
+<span class="nc" id="L328">			context.convertAnother(notaFiscal.getItens().get(i).getCfop());</span>
+<span class="nc" id="L329">			writer.endNode();</span>
+
+<span class="nc" id="L331">			writer.startNode(&quot;uCom&quot;);</span>
+<span class="nc" id="L332">			context.convertAnother(notaFiscal.getItens().get(i).getUnidade_tribu());</span>
+<span class="nc" id="L333">			writer.endNode();</span>
+
+<span class="nc" id="L335">			writer.startNode(&quot;qCom&quot;);</span>
+<span class="nc" id="L336">			context.convertAnother(notaFiscal.getItens().get(i).getQtd());</span>
+<span class="nc" id="L337">			writer.endNode();</span>
+
+<span class="nc" id="L339">			writer.startNode(&quot;vUnCom&quot;);</span>
+<span class="nc" id="L340">			context.convertAnother(notaFiscal.getItens().get(i).getV_uniTribu());</span>
+<span class="nc" id="L341">			writer.endNode();</span>
+
+<span class="nc" id="L343">			writer.startNode(&quot;vProd&quot;);</span>
+<span class="nc" id="L344">			context.convertAnother(formato.format(notaFiscal.getItens().get(i).getVlTotal()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L345">			writer.endNode();</span>
+
+<span class="nc" id="L347">			writer.startNode(&quot;cEANTrib&quot;);</span>
+<span class="nc" id="L348">			context.convertAnother(&quot;&quot;);</span>
+<span class="nc" id="L349">			writer.endNode();</span>
+
+<span class="nc" id="L351">			writer.startNode(&quot;uTrib&quot;);</span>
+<span class="nc" id="L352">			context.convertAnother(notaFiscal.getItens().get(i).getUnidade_tribu());</span>
+<span class="nc" id="L353">			writer.endNode();</span>
+
+<span class="nc" id="L355">			writer.startNode(&quot;qTrib&quot;);</span>
+<span class="nc" id="L356">			context.convertAnother(notaFiscal.getItens().get(i).getQtd_tribu());</span>
+<span class="nc" id="L357">			writer.endNode();</span>
+
+<span class="nc" id="L359">			writer.startNode(&quot;vUnTrib&quot;);</span>
+<span class="nc" id="L360">			context.convertAnother(notaFiscal.getItens().get(i).getV_uniTribu());</span>
+<span class="nc" id="L361">			writer.endNode();</span>
+
+<span class="nc" id="L363">			writer.startNode(&quot;indTot&quot;);</span>
+<span class="nc" id="L364">			context.convertAnother(1);</span>
+<span class="nc" id="L365">			writer.endNode();</span>
+
+<span class="nc" id="L367">			writer.endNode(); // fim nod&lt;prod&gt;</span>
+
+<span class="nc" id="L369">			writer.startNode(&quot;imposto&quot;);</span>
+
+<span class="nc" id="L371">			writer.startNode(&quot;ICMS&quot;);</span>
+
+<span class="nc" id="L373">			DecimalFormat formato2 = new DecimalFormat(&quot;00&quot;);</span>
+
+<span class="nc" id="L375">			String modeloICMS = &quot;&quot;;</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">			if (tipoRegime == 1)</span>
+<span class="nc" id="L377">				modeloICMS = &quot;ICMSSN&quot;;</span>
+			else
+<span class="nc" id="L379">				modeloICMS = &quot;ICMS&quot;;</span>
+
+<span class="nc" id="L381">			writer.startNode(modeloICMS + formato2.format(notaFiscal.getItens().get(i).getImpostos().getCst()));</span>
+
+<span class="nc" id="L383">			writer.startNode(&quot;orig&quot;);</span>
+<span class="nc" id="L384">			context.convertAnother(notaFiscal.getItens().get(i).getImpostos().getOrig());</span>
+<span class="nc" id="L385">			writer.endNode();</span>
+
+<span class="nc bnc" id="L387" title="All 2 branches missed.">			if (tipoRegime == 1) {</span>
+<span class="nc" id="L388">				writer.startNode(&quot;CSOSN&quot;);</span>
+<span class="nc" id="L389">				context.convertAnother(notaFiscal.getItens().get(i).getImpostos().getCst());</span>
+<span class="nc" id="L390">				writer.endNode();</span>
+
+<span class="nc" id="L392">				writer.startNode(&quot;pCredSN&quot;);</span>
+<span class="nc" id="L393">				context.convertAnother(2);</span>
+<span class="nc" id="L394">				writer.endNode();</span>
+
+<span class="nc" id="L396">				writer.startNode(&quot;vCredICMSSN&quot;);</span>
+<span class="nc" id="L397">				context.convertAnother((notaFiscal.getItens().get(i).getVlTotal() * 2) / 100);</span>
+<span class="nc" id="L398">				writer.endNode();</span>
+			} else {
+<span class="nc" id="L400">				writer.startNode(&quot;CST&quot;);</span>
+<span class="nc" id="L401">				context.convertAnother(formato2.format(notaFiscal.getItens().get(i).getImpostos().getCst()));</span>
+<span class="nc" id="L402">				writer.endNode();</span>
+
+<span class="nc" id="L404">				writer.startNode(&quot;modBC&quot;);</span>
+<span class="nc" id="L405">				context.convertAnother(notaFiscal.getItens().get(i).getImpostos().getMod_bc());</span>
+<span class="nc" id="L406">				writer.endNode();</span>
+
+<span class="nc" id="L408">				writer.startNode(&quot;vBC&quot;);</span>
+<span class="nc" id="L409">				context.convertAnother(</span>
+<span class="nc" id="L410">						formato.format(notaFiscal.getItens().get(i).getImpostos().getV_bc()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L411">				writer.endNode();</span>
+
+<span class="nc" id="L413">				writer.startNode(&quot;pICMS&quot;);</span>
+<span class="nc" id="L414">				context.convertAnother(</span>
+<span class="nc" id="L415">						formato.format(notaFiscal.getItens().get(i).getImpostos().getP_icms()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L416">				writer.endNode();</span>
+
+<span class="nc" id="L418">				writer.startNode(&quot;vICMS&quot;);</span>
+<span class="nc" id="L419">				context.convertAnother(</span>
+<span class="nc" id="L420">						formato.format(notaFiscal.getItens().get(i).getImpostos().getV_icms()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L421">				writer.endNode();</span>
+			}
+
+<span class="nc" id="L424">			writer.endNode(); // fim nod ICMS + CST</span>
+
+<span class="nc" id="L426">			writer.endNode(); // fim nod ICMS</span>
+
+<span class="nc" id="L428">			writer.startNode(&quot;PIS&quot;);</span>
+
+<span class="nc" id="L430">			writer.startNode(&quot;PISAliq&quot;);</span>
+
+<span class="nc" id="L432">			writer.startNode(&quot;CST&quot;);</span>
+<span class="nc" id="L433">			context.convertAnother(formato2.format(notaFiscal.getItens().get(i).getImpostos().getCst_pis()));</span>
+<span class="nc" id="L434">			writer.endNode();</span>
+
+<span class="nc" id="L436">			writer.startNode(&quot;vBC&quot;);</span>
+<span class="nc" id="L437">			context.convertAnother(</span>
+<span class="nc" id="L438">					formato.format(notaFiscal.getItens().get(i).getImpostos().getVbc_pis()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L439">			writer.endNode();</span>
+
+<span class="nc" id="L441">			writer.startNode(&quot;pPIS&quot;);</span>
+<span class="nc" id="L442">			context.convertAnother(</span>
+<span class="nc" id="L443">					formato.format(notaFiscal.getItens().get(i).getImpostos().getP_pis()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L444">			writer.endNode();</span>
+
+<span class="nc" id="L446">			writer.startNode(&quot;vPIS&quot;);</span>
+<span class="nc" id="L447">			context.convertAnother(</span>
+<span class="nc" id="L448">					formato.format(notaFiscal.getItens().get(i).getImpostos().getV_pis()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L449">			writer.endNode();</span>
+
+<span class="nc" id="L451">			writer.endNode(); // fim nod PISAliq</span>
+
+<span class="nc" id="L453">			writer.endNode(); // fim nod PIS</span>
+
+<span class="nc" id="L455">			writer.startNode(&quot;COFINS&quot;);</span>
+
+<span class="nc" id="L457">			writer.startNode(&quot;COFINSAliq&quot;);</span>
+
+<span class="nc" id="L459">			writer.startNode(&quot;CST&quot;);</span>
+<span class="nc" id="L460">			context.convertAnother(formato2.format(notaFiscal.getItens().get(i).getImpostos().getCst_cofins()));</span>
+<span class="nc" id="L461">			writer.endNode();</span>
+
+<span class="nc" id="L463">			writer.startNode(&quot;vBC&quot;);</span>
+<span class="nc" id="L464">			context.convertAnother(</span>
+<span class="nc" id="L465">					formato.format(notaFiscal.getItens().get(i).getImpostos().getVbc_cofins()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L466">			writer.endNode();</span>
+
+<span class="nc" id="L468">			writer.startNode(&quot;pCOFINS&quot;);</span>
+<span class="nc" id="L469">			context.convertAnother(</span>
+<span class="nc" id="L470">					formato.format(notaFiscal.getItens().get(i).getImpostos().getP_cofins()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L471">			writer.endNode();</span>
+
+<span class="nc" id="L473">			writer.startNode(&quot;vCOFINS&quot;);</span>
+<span class="nc" id="L474">			context.convertAnother(</span>
+<span class="nc" id="L475">					formato.format(notaFiscal.getItens().get(i).getImpostos().getV_cofins()).replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L476">			writer.endNode();</span>
+
+<span class="nc" id="L478">			writer.endNode(); // fim nod COFINS</span>
+
+<span class="nc" id="L480">			writer.endNode(); // fim nod COFINSAliq</span>
+
+<span class="nc" id="L482">			writer.endNode(); // fim nod imposto</span>
+
+<span class="nc" id="L484">			writer.endNode(); // fim nod &lt;det&gt;</span>
+		} // fim for dos itens
+
+<span class="nc" id="L487">		writer.startNode(&quot;total&quot;);</span>
+
+<span class="nc" id="L489">		writer.startNode(&quot;ICMSTot&quot;);</span>
+
+<span class="nc" id="L491">		String v_bc = formato.format(notaFiscal.getTotais().getV_bc()).replaceAll(&quot;,&quot;, &quot;.&quot;);</span>
+
+<span class="nc bnc" id="L493" title="All 2 branches missed.">		if (tipoRegime == 1)</span>
+<span class="nc" id="L494">			v_bc = &quot;0.00&quot;;</span>
+
+<span class="nc" id="L496">		writer.startNode(&quot;vBC&quot;);</span>
+<span class="nc" id="L497">		context.convertAnother(v_bc);</span>
+<span class="nc" id="L498">		writer.endNode();</span>
+
+<span class="nc" id="L500">		writer.startNode(&quot;vICMS&quot;);</span>
+<span class="nc" id="L501">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_icms()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L502">		writer.endNode();</span>
+
+<span class="nc" id="L504">		writer.startNode(&quot;vICMSDeson&quot;);</span>
+<span class="nc" id="L505">		context.convertAnother(&quot;0.00&quot;);</span>
+<span class="nc" id="L506">		writer.endNode();</span>
+
+<span class="nc" id="L508">		writer.startNode(&quot;vBCST&quot;);</span>
+<span class="nc" id="L509">		context.convertAnother(&quot;0.00&quot;);</span>
+<span class="nc" id="L510">		writer.endNode();</span>
+
+<span class="nc" id="L512">		writer.startNode(&quot;vST&quot;);</span>
+<span class="nc" id="L513">		context.convertAnother(&quot;0.00&quot;);</span>
+<span class="nc" id="L514">		writer.endNode();</span>
+
+<span class="nc" id="L516">		writer.startNode(&quot;vProd&quot;);</span>
+<span class="nc" id="L517">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_prod()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L518">		writer.endNode();</span>
+
+<span class="nc" id="L520">		writer.startNode(&quot;vFrete&quot;);</span>
+<span class="nc" id="L521">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_frete()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L522">		writer.endNode();</span>
+
+<span class="nc" id="L524">		writer.startNode(&quot;vSeg&quot;);</span>
+<span class="nc" id="L525">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_seg()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L526">		writer.endNode();</span>
+
+<span class="nc" id="L528">		writer.startNode(&quot;vDesc&quot;);</span>
+<span class="nc" id="L529">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_desc()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L530">		writer.endNode();</span>
+
+<span class="nc" id="L532">		writer.startNode(&quot;vII&quot;);</span>
+<span class="nc" id="L533">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_ii()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L534">		writer.endNode();</span>
+
+<span class="nc" id="L536">		writer.startNode(&quot;vIPI&quot;);</span>
+<span class="nc" id="L537">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_ipi()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L538">		writer.endNode();</span>
+
+<span class="nc" id="L540">		writer.startNode(&quot;vPIS&quot;);</span>
+<span class="nc" id="L541">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_pis()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L542">		writer.endNode();</span>
+
+<span class="nc" id="L544">		writer.startNode(&quot;vCOFINS&quot;);</span>
+<span class="nc" id="L545">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_cofins()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L546">		writer.endNode();</span>
+
+<span class="nc" id="L548">		writer.startNode(&quot;vOutro&quot;);</span>
+<span class="nc" id="L549">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_outros()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L550">		writer.endNode();</span>
+
+<span class="nc" id="L552">		writer.startNode(&quot;vNF&quot;);</span>
+<span class="nc" id="L553">		context.convertAnother(formato.format(notaFiscal.getTotais().getV_nf()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc" id="L554">		writer.endNode();</span>
+
+<span class="nc" id="L556">		writer.endNode(); // fim nod ICMSTot</span>
+
+<span class="nc" id="L558">		writer.endNode(); // fim nod total</span>
+
+<span class="nc" id="L560">		writer.startNode(&quot;transp&quot;);</span>
+
+<span class="nc" id="L562">		writer.startNode(&quot;modFrete&quot;);</span>
+<span class="nc" id="L563">		context.convertAnother(notaFiscal.getFreteTipo().getTipo());</span>
+<span class="nc" id="L564">		writer.endNode();</span>
+
+<span class="nc" id="L566">		writer.endNode(); // fim nod transp</span>
+
+<span class="nc" id="L568">		writer.endNode(); // fim nod &lt;infNFe&gt;</span>
+
+<span class="nc" id="L570">		writer.endNode(); // fim nod NFe</span>
+
+<span class="nc" id="L572">	}</span>
+
+	public String retornaChaveNfe() {
+<span class="nc" id="L575">		return chaveNfeRetorno;</span>
+	}
+
+	@Override
+	public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+<span class="nc" id="L580">		return null;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

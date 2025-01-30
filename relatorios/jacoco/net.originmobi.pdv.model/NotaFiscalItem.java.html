@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotaFiscalItem.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">NotaFiscalItem.java</span></div><h1>NotaFiscalItem.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+
+@Entity
+@Table(name = &quot;nota_fiscal_item&quot;)
+public class NotaFiscalItem implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	private Long codProd;
+	private int qtd;
+	private Double vlTotal;
+	private String ceantrib;
+	private String unidade_tribu;
+	private int qtd_tribu;
+	private String cfop;
+
+	@Column(name = &quot;vl_uni_tribu&quot;)
+	private Double v_uniTribu;
+
+	@ManyToOne
+	@JoinColumn(name = &quot;nota_fiscal_codigo&quot;)
+	private NotaFiscal notaFiscal;
+
+	@OneToOne(cascade = CascadeType.REMOVE)
+	@JoinColumn(name = &quot;imposto_codigo&quot;)
+	private NotaFiscalItemImposto impostos;
+
+	public NotaFiscalItem() {
+<span class="fc" id="L47">		super();</span>
+<span class="fc" id="L48">	}</span>
+
+	public NotaFiscalItem(Long prod, int qtd, Double vlTotal, String uniTribu, int qtd_tribu, Double vlUnidade,
+<span class="nc" id="L51">			NotaFiscal notaFiscal, NotaFiscalItemImposto imposto, String cfop) {</span>
+<span class="nc" id="L52">		this.codProd = prod;</span>
+<span class="nc" id="L53">		this.qtd = qtd;</span>
+<span class="nc" id="L54">		this.vlTotal = vlTotal;</span>
+<span class="nc" id="L55">		this.unidade_tribu = uniTribu;</span>
+<span class="nc" id="L56">		this.qtd_tribu = qtd_tribu;</span>
+<span class="nc" id="L57">		this.v_uniTribu = vlUnidade;</span>
+<span class="nc" id="L58">		this.notaFiscal = notaFiscal;</span>
+<span class="nc" id="L59">		this.impostos = imposto;</span>
+<span class="nc" id="L60">		this.cfop = cfop;</span>
+<span class="nc" id="L61">	}</span>
+
+	public Long getCodigo() {
+<span class="nc" id="L64">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L68">		this.codigo = codigo;</span>
+<span class="nc" id="L69">	}</span>
+
+	public Long getCodProd() {
+<span class="nc" id="L72">		return codProd;</span>
+	}
+
+	public void setCodProd(Long codProd) {
+<span class="nc" id="L76">		this.codProd = codProd;</span>
+<span class="nc" id="L77">	}</span>
+
+	public int getQtd() {
+<span class="nc" id="L80">		return qtd;</span>
+	}
+
+	public void setQtd(int qtd) {
+<span class="nc" id="L84">		this.qtd = qtd;</span>
+<span class="nc" id="L85">	}</span>
+
+	public Double getVlTotal() {
+<span class="nc" id="L88">		return vlTotal;</span>
+	}
+
+	public void setVlTotal(Double vlTotal) {
+<span class="nc" id="L92">		this.vlTotal = vlTotal;</span>
+<span class="nc" id="L93">	}</span>
+
+	public String getCeantrib() {
+<span class="nc" id="L96">		return ceantrib;</span>
+	}
+
+	public void setCeantrib(String ceantrib) {
+<span class="nc" id="L100">		this.ceantrib = ceantrib;</span>
+<span class="nc" id="L101">	}</span>
+
+	public String getUnidade_tribu() {
+<span class="nc" id="L104">		return unidade_tribu;</span>
+	}
+
+	public void setUnidade_tribu(String unidade_tribu) {
+<span class="nc" id="L108">		this.unidade_tribu = unidade_tribu;</span>
+<span class="nc" id="L109">	}</span>
+
+	public int getQtd_tribu() {
+<span class="nc" id="L112">		return qtd_tribu;</span>
+	}
+
+	public void setQtd_tribu(int qtd_tribu) {
+<span class="nc" id="L116">		this.qtd_tribu = qtd_tribu;</span>
+<span class="nc" id="L117">	}</span>
+
+	public Double getV_uniTribu() {
+<span class="nc" id="L120">		return v_uniTribu;</span>
+	}
+
+	public void setV_uniTribu(Double v_uniTribu) {
+<span class="nc" id="L124">		this.v_uniTribu = v_uniTribu;</span>
+<span class="nc" id="L125">	}</span>
+
+	public NotaFiscal getNotaFiscal() {
+<span class="nc" id="L128">		return notaFiscal;</span>
+	}
+
+	public void setNotaFiscal(NotaFiscal notaFiscal) {
+<span class="nc" id="L132">		this.notaFiscal = notaFiscal;</span>
+<span class="nc" id="L133">	}</span>
+
+	public NotaFiscalItemImposto getImpostos() {
+<span class="nc" id="L136">		return impostos;</span>
+	}
+
+	public void setImpostos(NotaFiscalItemImposto impostos) {
+<span class="nc" id="L140">		this.impostos = impostos;</span>
+<span class="nc" id="L141">	}</span>
+
+	public String getCfop() {
+<span class="nc" id="L144">		return cfop;</span>
+	}
+
+	public void setCfop(String cfop) {
+<span class="nc" id="L148">		this.cfop = cfop;</span>
+<span class="nc" id="L149">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Ajuste.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">Ajuste.java</span></div><h1>Ajuste.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+import java.sql.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import net.originmobi.pdv.enumerado.ajuste.AjusteStatus;
+
+@Entity
+public class Ajuste implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+	private String observacao;
+	private AjusteStatus status;
+	private String usuario;
+	
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_processamento;
+	
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_cadastro;
+
+	@OneToMany(mappedBy = &quot;ajuste&quot;, cascade = CascadeType.REMOVE)
+	private List&lt;AjusteProduto&gt; produtos;
+
+	public Ajuste() {
+<span class="fc" id="L40">		super();</span>
+<span class="fc" id="L41">	}</span>
+
+	public Ajuste(AjusteStatus status, String usuario, Date data_cadastro) {
+<span class="nc" id="L44">		super();</span>
+<span class="nc" id="L45">		this.status = status;</span>
+<span class="nc" id="L46">		this.usuario = usuario;</span>
+<span class="nc" id="L47">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L48">	}</span>
+
+	public Long getCodigo() {
+<span class="nc" id="L51">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L55">		this.codigo = codigo;</span>
+<span class="nc" id="L56">	}</span>
+
+	public String getObservacao() {
+<span class="nc" id="L59">		return observacao;</span>
+	}
+
+	public void setObservacao(String observacao) {
+<span class="nc" id="L63">		this.observacao = observacao;</span>
+<span class="nc" id="L64">	}</span>
+
+	public AjusteStatus getStatus() {
+<span class="nc" id="L67">		return status;</span>
+	}
+
+	public void setStatus(AjusteStatus status) {
+<span class="nc" id="L71">		this.status = status;</span>
+<span class="nc" id="L72">	}</span>
+
+	public String getUsuario() {
+<span class="nc" id="L75">		return usuario;</span>
+	}
+
+	public void setUsuario(String usuario) {
+<span class="nc" id="L79">		this.usuario = usuario;</span>
+<span class="nc" id="L80">	}</span>
+
+	public Date getData_processamento() {
+<span class="nc" id="L83">		return data_processamento;</span>
+	}
+
+	public void setData_processamento(Date data_processamento) {
+<span class="nc" id="L87">		this.data_processamento = data_processamento;</span>
+<span class="nc" id="L88">	}</span>
+
+	public Date getData_cadastro() {
+<span class="nc" id="L91">		return data_cadastro;</span>
+	}
+
+	public void setData_cadastro(Date data_cadastro) {
+<span class="nc" id="L95">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L96">	}</span>
+
+	public List&lt;AjusteProduto&gt; getProdutos() {
+<span class="nc" id="L99">		return produtos;</span>
+	}
+
+	public void setProdutos(List&lt;AjusteProduto&gt; produtos) {
+<span class="nc" id="L103">		this.produtos = produtos;</span>
+<span class="nc" id="L104">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

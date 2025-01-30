@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AjusteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.service</a> &gt; <span class="el_source">AjusteService.java</span></div><h1>AjusteService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.service;
+
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import net.originmobi.pdv.enumerado.EntradaSaida;
+import net.originmobi.pdv.enumerado.ajuste.AjusteStatus;
+import net.originmobi.pdv.filter.AjusteFilter;
+import net.originmobi.pdv.model.Ajuste;
+import net.originmobi.pdv.repository.AjusteRepository;
+import net.originmobi.pdv.singleton.Aplicacao;
+
+@Service
+<span class="fc" id="L22">public class AjusteService {</span>
+
+	@Autowired
+	private AjusteRepository ajustes;
+
+	@Autowired
+	private ProdutoService produtos;
+
+	LocalDate dataAtual;
+
+	public Page&lt;Ajuste&gt; lista(Pageable pageable, AjusteFilter filter) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">		if(filter.getCodigo() != null)</span>
+<span class="nc" id="L34">			return ajustes.lista(filter.getCodigo(), pageable);</span>
+		
+<span class="nc" id="L36">		return ajustes.lista(pageable);</span>
+	}
+
+	public Optional&lt;Ajuste&gt; busca(Long codigo) {
+<span class="nc" id="L40">		return ajustes.findById(codigo);</span>
+	}
+
+	public Long novo() {
+<span class="nc" id="L44">		dataAtual = LocalDate.now();</span>
+<span class="nc" id="L45">		Aplicacao aplicacao = Aplicacao.getInstancia();</span>
+
+<span class="nc" id="L47">		Ajuste ajuste = new Ajuste(AjusteStatus.APROCESSAR, aplicacao.getUsuarioAtual(), Date.valueOf(dataAtual));</span>
+<span class="nc" id="L48">		return ajustes.save(ajuste).getCodigo();</span>
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public String processar(Long codajuste, String obs) {
+<span class="nc" id="L53">		dataAtual = LocalDate.now();</span>
+<span class="nc" id="L54">		Optional&lt;Ajuste&gt; ajuste = ajustes.findById(codajuste);</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">		if (ajuste.map(Ajuste::getStatus).get().equals(AjusteStatus.PROCESSADO))</span>
+<span class="nc" id="L57">			throw new RuntimeException(&quot;Ajuste já processado&quot;);</span>
+
+<span class="nc bnc" id="L59" title="All 2 branches missed.">		for (int i = 0; i &lt; ajuste.get().getProdutos().size(); i++) {</span>
+<span class="nc" id="L60">			Long codprod = ajuste.get().getProdutos().get(i).getProduto().getCodigo();</span>
+<span class="nc" id="L61">			int qtd_alteracao = ajuste.get().getProdutos().get(i).getQtd_alteracao();</span>
+
+<span class="nc bnc" id="L63" title="All 2 branches missed.">			EntradaSaida tipo = qtd_alteracao &gt; 0 ? EntradaSaida.ENTRADA : EntradaSaida.SAIDA;</span>
+<span class="nc" id="L64">			String origem_operacao = &quot;Referente ao ajuste de estoque &quot; + codajuste;</span>
+
+			try {
+<span class="nc" id="L67">				produtos.ajusteEstoque(codprod, qtd_alteracao, tipo, origem_operacao, Date.valueOf(dataAtual));</span>
+<span class="nc" id="L68">			} catch (Exception e) {</span>
+<span class="nc" id="L69">				System.out.println(e);</span>
+<span class="nc" id="L70">				throw new RuntimeException(&quot;Erro ao tentar processar o ajuste, chame o suporte&quot;);</span>
+<span class="nc" id="L71">			}</span>
+		}
+
+<span class="nc" id="L74">		ajuste.get().setStatus(AjusteStatus.PROCESSADO);</span>
+<span class="nc" id="L75">		ajuste.get().setObservacao(obs);</span>
+<span class="nc" id="L76">		ajuste.get().setData_processamento(Date.valueOf(dataAtual));</span>
+		try {
+<span class="nc" id="L78">			ajustes.save(ajuste.get());</span>
+<span class="nc" id="L79">		} catch (Exception e) {</span>
+<span class="nc" id="L80">			throw new RuntimeException(&quot;Erro ao tentar processar o ajuste, chame o suporte&quot;);</span>
+<span class="nc" id="L81">		}</span>
+
+<span class="nc" id="L83">		return &quot;Ajuste realizado com sucesso&quot;;</span>
+	}
+
+	public void remover(Ajuste ajuste) {
+		
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		if(ajuste.getStatus().equals(AjusteStatus.PROCESSADO))</span>
+<span class="nc" id="L89">			throw new RuntimeException(&quot;O ajuste já esta processado&quot;);</span>
+		
+		try {
+<span class="nc" id="L92">			ajustes.deleteById(ajuste.getCodigo());</span>
+<span class="nc" id="L93">		} catch (Exception e) {</span>
+<span class="nc" id="L94">			throw new RuntimeException(&quot;Erro ao tentar cancelar o ajuste&quot;);</span>
+<span class="nc" id="L95">		}</span>
+<span class="nc" id="L96">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

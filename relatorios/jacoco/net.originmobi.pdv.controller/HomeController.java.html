@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HomeController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.controller</a> &gt; <span class="el_source">HomeController.java</span></div><h1>HomeController.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import net.originmobi.pdv.service.PagarParcelaService;
+import net.originmobi.pdv.service.ReceberService;
+import net.originmobi.pdv.service.VendaService;
+import net.originmobi.pdv.service.notafiscal.NotaFiscalService;
+
+@Controller
+<span class="fc" id="L14">public class HomeController {</span>
+
+	private static final String DASHBOARD_DASHBOARD = &quot;dashboard/dashboard&quot;;
+
+	@Autowired
+	private VendaService vendas;
+
+	@Autowired
+	private ReceberService receberServ;
+
+	@Autowired
+	private PagarParcelaService pagarServ;
+
+	@Autowired
+	private NotaFiscalService notas;
+
+	@GetMapping({ &quot;&quot;, &quot;/&quot; })
+	public ModelAndView home() {
+<span class="nc" id="L32">		ModelAndView mv = new ModelAndView(DASHBOARD_DASHBOARD);</span>
+<span class="nc" id="L33">		mv.addObject(&quot;pedidosAberto&quot;, vendas.qtdAbertos());</span>
+<span class="nc" id="L34">		mv.addObject(&quot;total_a_receber&quot;, receberServ.total_a_receber());</span>
+<span class="nc" id="L35">		mv.addObject(&quot;total_a_pagar&quot;, pagarServ.totalParagarAberto());</span>
+<span class="nc" id="L36">		mv.addObject(&quot;total_notas_emitidas&quot;, notas.totalNotaFiscalEmitidas());</span>
+
+<span class="nc" id="L38">		return mv;</span>
+	}
+
+	@GetMapping(&quot;/login&quot;)
+	public String login() {
+<span class="nc" id="L43">		return &quot;login/login&quot;;</span>
+	}
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

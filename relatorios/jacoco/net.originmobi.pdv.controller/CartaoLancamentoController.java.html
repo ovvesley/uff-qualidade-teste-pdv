@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CartaoLancamentoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.controller</a> &gt; <span class="el_source">CartaoLancamentoController.java</span></div><h1>CartaoLancamentoController.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.controller;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import net.originmobi.pdv.enumerado.cartao.CartaoSituacao;
+import net.originmobi.pdv.enumerado.cartao.CartaoTipo;
+import net.originmobi.pdv.filter.CartaoFilter;
+import net.originmobi.pdv.model.cartao.CartaoLancamento;
+import net.originmobi.pdv.service.cartao.CartaoLancamentoService;
+
+@Controller
+@RequestMapping(&quot;/cartaolancamentos&quot;)
+<span class="fc" id="L24">public class CartaoLancamentoController {</span>
+
+	private static final String CARTAO_LIST = &quot;cartao/list&quot;;
+
+	@Autowired
+	private CartaoLancamentoService cartaoLancamentos;
+
+	@GetMapping
+	public ModelAndView lista(@ModelAttribute(&quot;filterCartao&quot;) CartaoFilter filter) {
+<span class="nc" id="L33">		ModelAndView mv = new ModelAndView(CARTAO_LIST);</span>
+<span class="nc" id="L34">		mv.addObject(&quot;cartoes&quot;, cartaoLancamentos.listar(filter));</span>
+<span class="nc" id="L35">		return mv;</span>
+	}
+
+	@RequestMapping(value = &quot;{codigo}&quot;, method = RequestMethod.PUT)
+	public @ResponseBody String processar(@PathVariable(&quot;codigo&quot;) CartaoLancamento cartaoLancamento) {
+<span class="nc" id="L40">		return cartaoLancamentos.processar(cartaoLancamento);</span>
+	}
+
+	@RequestMapping(value = &quot;/antecipar/{codigo}&quot;, method = RequestMethod.PUT)
+	public @ResponseBody String antecipar(@PathVariable(&quot;codigo&quot;) CartaoLancamento cartaoLancamento) {
+<span class="nc" id="L45">		return cartaoLancamentos.antecipar(cartaoLancamento);</span>
+	}
+
+	@ModelAttribute(&quot;situacoes&quot;)
+	public List&lt;CartaoSituacao&gt; situacoes() {
+<span class="nc" id="L50">		return Arrays.asList(CartaoSituacao.values());</span>
+	}
+
+	@ModelAttribute(&quot;tipos&quot;)
+	public List&lt;CartaoTipo&gt; tipos() {
+<span class="nc" id="L55">		return Arrays.asList(CartaoTipo.values());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.security</a> &gt; <span class="el_source">SecurityConfig.java</span></div><h1>SecurityConfig.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.security;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+@Configuration
+@EnableWebSecurity
+<span class="fc" id="L13">public class SecurityConfig extends WebSecurityConfigurerAdapter{</span>
+	
+	@Autowired
+	private LoginUserDatailsService loginUserDetailsService;
+	
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+<span class="fc" id="L20">		http.csrf().disable()</span>
+<span class="fc" id="L21">			.authorizeRequests()</span>
+<span class="fc" id="L22">			.antMatchers(&quot;/resources/**&quot;, &quot;/css/**&quot;, &quot;/js/**&quot;, &quot;/fonts/**&quot;, &quot;/webjars/**&quot;).permitAll()</span>
+			
+<span class="fc" id="L24">			.antMatchers(&quot;/&quot;).hasRole(&quot;ENTRAR_NO_SISTEMA&quot;)</span>
+<span class="fc" id="L25">			.antMatchers(&quot;/pessoa&quot;).hasRole(&quot;VISUALIZAR_PESSOA&quot;)</span>
+<span class="fc" id="L26">			.antMatchers(&quot;/pessoa/form&quot;).hasRole(&quot;EDITAR_PESSOA&quot;)</span>
+<span class="fc" id="L27">			.antMatchers(&quot;/fornecedor&quot;).hasRole(&quot;VISUALIZAR_FORNECEDOR&quot;)</span>
+<span class="fc" id="L28">			.antMatchers(&quot;/fornecedor/form&quot;).hasRole(&quot;EDITAR_FORNECEDOR&quot;)</span>
+<span class="fc" id="L29">			.antMatchers(&quot;/grupo&quot;).hasRole(&quot;VISUALIZAR_GRUPO&quot;)</span>
+<span class="fc" id="L30">			.antMatchers(&quot;/grupo/form&quot;).hasRole(&quot;EDITAR_GRUPO&quot;)</span>
+<span class="fc" id="L31">			.antMatchers(&quot;/categoria&quot;).hasRole(&quot;VISUALIZAR_CATEGORIA&quot;)</span>
+<span class="fc" id="L32">			.antMatchers(&quot;/categoria/form&quot;).hasRole(&quot;EDITAR_CATEGORIA&quot;)</span>
+<span class="fc" id="L33">			.antMatchers(&quot;/produto&quot;).hasRole(&quot;VISUALIZAR_PRODUTO&quot;)</span>
+<span class="fc" id="L34">			.antMatchers(&quot;/produto/form&quot;).hasRole(&quot;EDITAR_PRODUTO&quot;)</span>
+<span class="fc" id="L35">			.antMatchers(&quot;/usuario&quot;).hasRole(&quot;VISUALIZAR_USUARIO&quot;)</span>
+<span class="fc" id="L36">			.antMatchers(&quot;/usuario/form&quot;).hasRole(&quot;EDITAR_USUARIO&quot;)</span>
+			
+<span class="fc" id="L38">			.antMatchers(&quot;/venda/status/ABERTA&quot;).hasRole(&quot;VISUALIZAR_PEDIDO_ABERTO&quot;)</span>
+<span class="fc" id="L39">			.antMatchers(&quot;/venda/status/FECHADA&quot;).hasRole(&quot;VISUALIZAR_PEDIDO_FECHADO&quot;)</span>
+<span class="fc" id="L40">			.antMatchers(&quot;/venda/form&quot;).hasRole(&quot;ABRIR_PEDIDO&quot;)</span>
+<span class="fc" id="L41">			.antMatchers(&quot;/venda/fechar/&quot;).hasRole(&quot;GERAR_VENDA&quot;)</span>
+<span class="fc" id="L42">			.antMatchers(&quot;/venda/addproduto/&quot;).hasRole(&quot;INSERIR_PRODUTO_VENDA&quot;)</span>
+<span class="fc" id="L43">			.antMatchers(&quot;/venda/removeproduto/&quot;).hasRole(&quot;REMOVER_PRODUTO_VENDA&quot;)</span>
+<span class="fc" id="L44">			.antMatchers(&quot;/caixa&quot;).hasRole(&quot;LISTAR_CAIXA&quot;)</span>
+<span class="fc" id="L45">			.antMatchers(&quot;/caixa/gerenciar/&quot;).hasRole(&quot;ACESSAR_CAIXA&quot;)</span>
+<span class="fc" id="L46">			.antMatchers(&quot;/caixa/lancamento/suprimento&quot;).hasRole(&quot;CAIXA_SUPRIMENTO&quot;)</span>
+<span class="fc" id="L47">			.antMatchers(&quot;/caixa/lancamento/sangria&quot;).hasRole(&quot;CAIXA_SANGRIA&quot;)</span>
+<span class="fc" id="L48">			.antMatchers(&quot;/transferencia&quot;).hasRole(&quot;CAIXA_TRANSFERENCIA&quot;)</span>
+<span class="fc" id="L49">			.antMatchers(&quot;/caixa/fechar&quot;).hasRole(&quot;FECHAR_CAIXA&quot;)</span>
+<span class="fc" id="L50">			.antMatchers(&quot;/receber&quot;).hasRole(&quot;VISUALIZAR_RECEBER&quot;)</span>
+<span class="fc" id="L51">			.antMatchers(&quot;/recebimento/&quot;).hasRole(&quot;REALIZAR_RECEBIMENTO&quot;)</span>
+<span class="fc" id="L52">			.antMatchers(&quot;/pagar&quot;).hasRole(&quot;VISUALIZAR_DESPESAS&quot;)</span>
+<span class="fc" id="L53">			.antMatchers(&quot;/pagar/quitar&quot;).hasRole(&quot;PAGAR_DESPESA&quot;)</span>
+<span class="fc" id="L54">			.antMatchers(&quot;/pagamentotipo&quot;).hasRole(&quot;VISUALIZAR_FORMA_PAGAMENTO&quot;)</span>
+<span class="fc" id="L55">			.antMatchers(&quot;/pagamentotipo/form&quot;).hasRole(&quot;CADASTRAR_FORMA_PAGAMENTO&quot;)</span>
+<span class="fc" id="L56">			.antMatchers(&quot;/tributacao&quot;).hasRole(&quot;LISTA_TRIBUTAÇÃO&quot;)</span>
+<span class="fc" id="L57">			.antMatchers(&quot;/tributacao&quot;).hasRole(&quot;CADASTRA_TRIBUTACAO&quot;)</span>
+<span class="fc" id="L58">			.antMatchers(&quot;/regras&quot;).hasRole(&quot;CADATRAR_REGRA_TRIBUTACAO&quot;)</span>
+<span class="fc" id="L59">			.antMatchers(&quot;/regras&quot;).hasRole(&quot;EXCLUIR_REGRA_TRIBUTACAO&quot;)</span>
+<span class="fc" id="L60">			.antMatchers(&quot;/regras&quot;).hasRole(&quot;EDITAR_REGRA_TRIBUTACAO&quot;)</span>
+<span class="fc" id="L61">			.antMatchers(&quot;/notafiscal&quot;).hasRole(&quot;VISUALIZA_NOTAFISCAL&quot;)</span>
+<span class="fc" id="L62">			.antMatchers(&quot;/empresa&quot;).hasRole(&quot;EDITAR_PARAMETROS&quot;)</span>
+<span class="fc" id="L63">			.antMatchers(&quot;/banco&quot;).hasRole(&quot;LISTAR_BANCO&quot;)</span>
+<span class="fc" id="L64">			.antMatchers(&quot;/maquinacartao&quot;).hasRole(&quot;EDITAR_CARTAO&quot;)</span>
+<span class="fc" id="L65">			.antMatchers(&quot;/titulos&quot;).hasRole(&quot;EDITAR_TITULO&quot;) </span>
+<span class="fc" id="L66">			.antMatchers(&quot;/cartaolancamentos&quot;).hasRole(&quot;GERENCIAR_CARTOES&quot;)</span>
+<span class="fc" id="L67">			.antMatchers(&quot;/cartaolancamentos&quot;).hasRole(&quot;ANTECIPAR_CARTAO&quot;)</span>
+<span class="fc" id="L68">			.antMatchers(&quot;/cartaolancamentos&quot;).hasRole(&quot;PROCESSAR_CARTAO&quot;)</span>
+			
+<span class="fc" id="L70">			.antMatchers(&quot;/ajustes&quot;).hasRole(&quot;LISTA_AJUSTE&quot;)</span>
+<span class="fc" id="L71">			.antMatchers(&quot;/ajustes/cancelar/&quot;).hasRole(&quot;FAZ_AJUSTE&quot;)</span>
+<span class="fc" id="L72">			.antMatchers(&quot;/ajustes/processar&quot;).hasRole(&quot;FAZ_AJUSTE&quot;)</span>
+			
+<span class="fc" id="L74">			.anyRequest().authenticated()</span>
+<span class="fc" id="L75">			.and()</span>
+<span class="fc" id="L76">			.sessionManagement().invalidSessionUrl(&quot;/login&quot;)</span>
+<span class="fc" id="L77">			.and()</span>
+<span class="fc" id="L78">			.formLogin().loginPage(&quot;/login&quot;).permitAll()</span>
+<span class="fc" id="L79">			.and()</span>
+<span class="fc" id="L80">			.logout().permitAll();</span>
+		
+<span class="fc" id="L82">		http.sessionManagement().maximumSessions(1).expiredUrl(&quot;/login?expired&quot;);</span>
+<span class="fc" id="L83">	}</span>
+	
+	@Autowired
+	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+<span class="fc" id="L87">		auth.userDetailsService(loginUserDetailsService)</span>
+<span class="fc" id="L88">			.passwordEncoder(new BCryptPasswordEncoder());</span>
+<span class="fc" id="L89">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

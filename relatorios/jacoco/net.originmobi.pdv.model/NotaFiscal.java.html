@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotaFiscal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">NotaFiscal.java</span></div><h1>NotaFiscal.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+import java.sql.Date;
+import java.sql.Time;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import net.originmobi.pdv.enumerado.notafiscal.NotaFiscalTipo;
+
+@Entity
+@Table(name = &quot;nota_fiscal&quot;)
+public class NotaFiscal implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	private Long numero;
+	private int modelo;
+	private int serie;
+
+	@Enumerated(EnumType.ORDINAL)
+	private NotaFiscalTipo tipo;
+
+	private String chave_acesso;
+	private String natureza_operacao;
+	private String situacao;
+	private int tipo_emissao;
+	private int tipo_impressao;
+
+	@Column(name = &quot;cdv&quot;)
+	private Long dv;
+
+	// valor 0 - emissão de nfe com aplicativo do contribuinte
+	@Column(name = &quot;procemi&quot;)
+	private int procEmis;
+
+	@Column(name = &quot;verproc&quot;)
+	private String verProc;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_emissao;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_saida;
+
+	@DateTimeFormat(pattern = &quot;hh:mm:ss&quot;)
+	private Time hora_saida;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_cadastro;
+
+	@ManyToOne
+	@JoinColumn(name = &quot;emissor_codigo&quot;)
+	private Empresa emissor;
+
+	@ManyToOne
+	@JoinColumn(name = &quot;destinatario_codigo&quot;)
+	private Pessoa destinatario;
+
+	@ManyToOne
+	@JoinColumn(name = &quot;frete_tipo_codigo&quot;)
+	private FreteTipo freteTipo;
+
+	@ManyToOne
+	@JoinColumn(name = &quot;finalidade_codigo&quot;)
+	private NotaFiscalFinalidade finalidade;
+
+	@OneToOne
+	@JoinColumn(name = &quot;totais_codigo&quot;)
+	private NotaFiscalTotais totais;
+
+	@OneToMany(mappedBy = &quot;notaFiscal&quot;)
+	private List&lt;NotaFiscalItem&gt; itens;
+
+	private int tipo_ambiente;
+
+	public NotaFiscal() {
+<span class="fc" id="L96">		super();</span>
+<span class="fc" id="L97">	}</span>
+
+	public NotaFiscal(Long numeroNota, int modelo, NotaFiscalTipo tipoNota, String natureza, int serie, Empresa emissor,
+			Pessoa destinatario, int tipoEmissao, String verProc, FreteTipo tipoFrete, NotaFiscalFinalidade finalidade,
+<span class="nc" id="L101">			NotaFiscalTotais totais, int tipo_ambiente, Date cadastro) {</span>
+<span class="nc" id="L102">		this.numero = numeroNota;</span>
+<span class="nc" id="L103">		this.modelo = modelo;</span>
+<span class="nc" id="L104">		this.tipo = tipoNota;</span>
+<span class="nc" id="L105">		this.natureza_operacao = natureza;</span>
+<span class="nc" id="L106">		this.serie = serie;</span>
+<span class="nc" id="L107">		this.emissor = emissor;</span>
+<span class="nc" id="L108">		this.destinatario = destinatario;</span>
+<span class="nc" id="L109">		this.tipo_emissao = tipoEmissao;</span>
+<span class="nc" id="L110">		this.verProc = verProc;</span>
+<span class="nc" id="L111">		this.freteTipo = tipoFrete;</span>
+<span class="nc" id="L112">		this.finalidade = finalidade;</span>
+<span class="nc" id="L113">		this.totais = totais;</span>
+<span class="nc" id="L114">		this.tipo_ambiente = tipo_ambiente;</span>
+<span class="nc" id="L115">		this.data_cadastro = cadastro;</span>
+
+<span class="nc" id="L117">	}</span>
+
+	public Long getCodigo() {
+<span class="nc" id="L120">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L124">		this.codigo = codigo;</span>
+<span class="nc" id="L125">	}</span>
+
+	public Long getNumero() {
+<span class="nc" id="L128">		return numero;</span>
+	}
+
+	public void setNumero(Long numero) {
+<span class="nc" id="L132">		this.numero = numero;</span>
+<span class="nc" id="L133">	}</span>
+
+	public int getModelo() {
+<span class="nc" id="L136">		return modelo;</span>
+	}
+
+	public void setModelo(int modelo) {
+<span class="nc" id="L140">		this.modelo = modelo;</span>
+<span class="nc" id="L141">	}</span>
+
+	public int getSerie() {
+<span class="nc" id="L144">		return serie;</span>
+	}
+
+	public void setSerie(int serie) {
+<span class="nc" id="L148">		this.serie = serie;</span>
+<span class="nc" id="L149">	}</span>
+
+	public NotaFiscalTipo getTipo() {
+<span class="nc" id="L152">		return tipo;</span>
+	}
+
+	public void setTipo(NotaFiscalTipo tipo) {
+<span class="nc" id="L156">		this.tipo = tipo;</span>
+<span class="nc" id="L157">	}</span>
+
+	public String getChave_acesso() {
+<span class="nc" id="L160">		return chave_acesso;</span>
+	}
+
+	public void setChave_acesso(String chave_acesso) {
+<span class="nc" id="L164">		this.chave_acesso = chave_acesso;</span>
+<span class="nc" id="L165">	}</span>
+
+	public String getNatureza_operacao() {
+<span class="nc" id="L168">		return natureza_operacao;</span>
+	}
+
+	public void setNatureza_operacao(String natureza_operacao) {
+<span class="nc" id="L172">		this.natureza_operacao = natureza_operacao;</span>
+<span class="nc" id="L173">	}</span>
+
+	public String getSituacao() {
+<span class="nc" id="L176">		return situacao;</span>
+	}
+
+	public void setSituacao(String situacao) {
+<span class="nc" id="L180">		this.situacao = situacao;</span>
+<span class="nc" id="L181">	}</span>
+
+	public int getTipo_emissao() {
+<span class="nc" id="L184">		return tipo_emissao;</span>
+	}
+
+	public void setTipo_emissao(int tipo_emissao) {
+<span class="nc" id="L188">		this.tipo_emissao = tipo_emissao;</span>
+<span class="nc" id="L189">	}</span>
+
+	public int getTipo_impressao() {
+<span class="nc" id="L192">		return tipo_impressao;</span>
+	}
+
+	public void setTipo_impressao(int tipo_impressao) {
+<span class="nc" id="L196">		this.tipo_impressao = tipo_impressao;</span>
+<span class="nc" id="L197">	}</span>
+
+	public Long getDv() {
+<span class="nc" id="L200">		return dv;</span>
+	}
+
+	public void setDv(Long dv) {
+<span class="nc" id="L204">		this.dv = dv;</span>
+<span class="nc" id="L205">	}</span>
+
+	public int getProcEmis() {
+<span class="nc" id="L208">		return procEmis;</span>
+	}
+
+	public void setProcEmis(int procEmis) {
+<span class="nc" id="L212">		this.procEmis = procEmis;</span>
+<span class="nc" id="L213">	}</span>
+
+	public String getVerProc() {
+<span class="nc" id="L216">		return verProc;</span>
+	}
+
+	public void setVerProc(String verProc) {
+<span class="nc" id="L220">		this.verProc = verProc;</span>
+<span class="nc" id="L221">	}</span>
+
+	public Date getData_emissao() {
+<span class="nc" id="L224">		return data_emissao;</span>
+	}
+
+	public void setData_emissao(Date data_emissao) {
+<span class="nc" id="L228">		this.data_emissao = data_emissao;</span>
+<span class="nc" id="L229">	}</span>
+
+	public Date getData_saida() {
+<span class="nc" id="L232">		return data_saida;</span>
+	}
+
+	public void setData_saida(Date data_saida) {
+<span class="nc" id="L236">		this.data_saida = data_saida;</span>
+<span class="nc" id="L237">	}</span>
+
+	public Time getHora_saida() {
+<span class="nc" id="L240">		return hora_saida;</span>
+	}
+
+	public void setHora_saida(Time hora_saida) {
+<span class="nc" id="L244">		this.hora_saida = hora_saida;</span>
+<span class="nc" id="L245">	}</span>
+
+	public Date getData_cadastro() {
+<span class="nc" id="L248">		return data_cadastro;</span>
+	}
+
+	public void setData_cadastro(Date data_cadastro) {
+<span class="nc" id="L252">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L253">	}</span>
+
+	public Empresa getEmissor() {
+<span class="nc" id="L256">		return emissor;</span>
+	}
+
+	public void setEmissor(Empresa emissor) {
+<span class="nc" id="L260">		this.emissor = emissor;</span>
+<span class="nc" id="L261">	}</span>
+
+	public Pessoa getDestinatario() {
+<span class="nc" id="L264">		return destinatario;</span>
+	}
+
+	public void setDestinatario(Pessoa destinatario) {
+<span class="nc" id="L268">		this.destinatario = destinatario;</span>
+<span class="nc" id="L269">	}</span>
+
+	public FreteTipo getFreteTipo() {
+<span class="nc" id="L272">		return freteTipo;</span>
+	}
+
+	public void setFreteTipo(FreteTipo freteTipo) {
+<span class="nc" id="L276">		this.freteTipo = freteTipo;</span>
+<span class="nc" id="L277">	}</span>
+
+	public NotaFiscalFinalidade getFinalidade() {
+<span class="nc" id="L280">		return finalidade;</span>
+	}
+
+	public void setFinalidade(NotaFiscalFinalidade finalidade) {
+<span class="nc" id="L284">		this.finalidade = finalidade;</span>
+<span class="nc" id="L285">	}</span>
+
+	public NotaFiscalTotais getTotais() {
+<span class="nc" id="L288">		return totais;</span>
+	}
+
+	public void setTotais(NotaFiscalTotais totais) {
+<span class="nc" id="L292">		this.totais = totais;</span>
+<span class="nc" id="L293">	}</span>
+
+	public List&lt;NotaFiscalItem&gt; getItens() {
+<span class="nc" id="L296">		return itens;</span>
+	}
+
+	public void setItens(List&lt;NotaFiscalItem&gt; itens) {
+<span class="nc" id="L300">		this.itens = itens;</span>
+<span class="nc" id="L301">	}</span>
+
+	public int getTipo_ambiente() {
+<span class="nc" id="L304">		return tipo_ambiente;</span>
+	}
+
+	public void setTipo_ambiente(int tipo_ambiente) {
+<span class="nc" id="L308">		this.tipo_ambiente = tipo_ambiente;</span>
+<span class="nc" id="L309">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

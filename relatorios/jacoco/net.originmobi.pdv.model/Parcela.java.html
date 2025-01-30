@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Parcela.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">Parcela.java</span></div><h1>Parcela.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+import java.sql.Date;
+import java.sql.Timestamp;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.NumberFormat;
+
+@Entity
+public class Parcela implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_total;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_acrescimo;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_desconto;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_recebido;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_restante;
+
+	private int quitado;
+
+	private int sequencia;
+
+	@ManyToOne
+	private Receber receber;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Timestamp data_cadastro;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_vencimento;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy hh:mm:ss&quot;)
+	private Timestamp data_pagamento;
+
+	@Deprecated
+<span class="fc" id="L57">	public Parcela() {</span>
+<span class="fc" id="L58">	}</span>
+
+	public Parcela(Double valor_total, Double valor_acrescimo, Double valor_desconto, Double valor_recebido,
+			Double valor_restante, int quitado, int sequencia, Receber receber,
+			Timestamp data_cadastro, Date data_vencimento) {
+<span class="nc" id="L63">		super();</span>
+<span class="nc" id="L64">		this.valor_total = valor_total;</span>
+<span class="nc" id="L65">		this.valor_acrescimo = valor_acrescimo;</span>
+<span class="nc" id="L66">		this.valor_desconto = valor_desconto;</span>
+<span class="nc" id="L67">		this.valor_recebido = valor_recebido;</span>
+<span class="nc" id="L68">		this.valor_restante = valor_restante;</span>
+<span class="nc" id="L69">		this.quitado = quitado;</span>
+<span class="nc" id="L70">		this.sequencia = sequencia;</span>
+<span class="nc" id="L71">		this.receber = receber;</span>
+<span class="nc" id="L72">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L73">		this.data_vencimento = data_vencimento;</span>
+<span class="nc" id="L74">	}</span>
+	
+	public Boolean isQuitado() {
+<span class="nc bnc" id="L77" title="All 2 branches missed.">		return quitado == 1;</span>
+	}
+
+	public Long getCodigo() {
+<span class="nc" id="L81">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L85">		this.codigo = codigo;</span>
+<span class="nc" id="L86">	}</span>
+
+	public Double getValor_acrescimo() {
+<span class="nc" id="L89">		return valor_acrescimo;</span>
+	}
+
+	public void setValor_acrescimo(Double valor_acrescimo) {
+<span class="nc" id="L93">		this.valor_acrescimo = valor_acrescimo;</span>
+<span class="nc" id="L94">	}</span>
+
+	public Double getValor_desconto() {
+<span class="nc" id="L97">		return valor_desconto;</span>
+	}
+
+	public void setValor_desconto(Double valor_desconto) {
+<span class="nc" id="L101">		this.valor_desconto = valor_desconto;</span>
+<span class="nc" id="L102">	}</span>
+
+	public Double getValor_recebido() {
+<span class="nc" id="L105">		return valor_recebido;</span>
+	}
+
+	public void setValor_recebido(Double valor_recebido) {
+<span class="nc" id="L109">		this.valor_recebido = valor_recebido;</span>
+<span class="nc" id="L110">	}</span>
+
+	public Double getValor_restante() {
+<span class="nc" id="L113">		return valor_restante;</span>
+	}
+
+	public void setValor_restante(Double valor_restante) {
+<span class="nc" id="L117">		this.valor_restante = valor_restante;</span>
+<span class="nc" id="L118">	}</span>
+
+	public int getQuitado() {
+<span class="nc" id="L121">		return quitado;</span>
+	}
+
+	public void setQuitado(int quitado) {
+<span class="nc" id="L125">		this.quitado = quitado;</span>
+<span class="nc" id="L126">	}</span>
+
+	public Receber getReceber() {
+<span class="nc" id="L129">		return receber;</span>
+	}
+
+	public void setReceber(Receber receber) {
+<span class="nc" id="L133">		this.receber = receber;</span>
+<span class="nc" id="L134">	}</span>
+
+	public Timestamp getData_cadastro() {
+<span class="nc" id="L137">		return data_cadastro;</span>
+	}
+
+	public void setData_cadastro(Timestamp data_cadastro) {
+<span class="nc" id="L141">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L142">	}</span>
+
+	public Date getData_vencimento() {
+<span class="nc" id="L145">		return data_vencimento;</span>
+	}
+
+	public void setData_vencimento(Date data_vencimento) {
+<span class="nc" id="L149">		this.data_vencimento = data_vencimento;</span>
+<span class="nc" id="L150">	}</span>
+
+	public Timestamp getData_pagamento() {
+<span class="nc" id="L153">		return data_pagamento;</span>
+	}
+
+	public void setData_pagamento(Timestamp data_pagamento) {
+<span class="nc" id="L157">		this.data_pagamento = data_pagamento;</span>
+<span class="nc" id="L158">	}</span>
+
+	public Double getValor_total() {
+<span class="nc" id="L161">		return valor_total;</span>
+	}
+
+	public void setValor_total(Double valor_total) {
+<span class="nc" id="L165">		this.valor_total = valor_total;</span>
+<span class="nc" id="L166">	}</span>
+
+	public int getSequencia() {
+<span class="nc" id="L169">		return sequencia;</span>
+	}
+
+	public void setSequencia(int sequencia) {
+<span class="nc" id="L173">		this.sequencia = sequencia;</span>
+<span class="nc" id="L174">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

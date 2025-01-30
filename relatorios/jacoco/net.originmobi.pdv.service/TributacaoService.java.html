@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TributacaoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.service</a> &gt; <span class="el_source">TributacaoService.java</span></div><h1>TributacaoService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.service;
+
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import net.originmobi.pdv.model.Empresa;
+import net.originmobi.pdv.model.Tributacao;
+import net.originmobi.pdv.repository.TributacaoRepository;
+
+@Service
+<span class="fc" id="L16">public class TributacaoService {</span>
+
+	@Autowired
+	private TributacaoRepository tributacoes;
+
+	@Autowired
+	private EmpresaService empresas;
+
+	public String cadastro(Tributacao tributacao) {
+<span class="nc" id="L25">		LocalDate dataAtual = LocalDate.now();</span>
+
+<span class="nc" id="L27">		Tributacao tribut = null;</span>
+
+<span class="nc" id="L29">		Optional&lt;Empresa&gt; empresa = empresas.verificaEmpresaCadastrada();</span>
+
+<span class="nc bnc" id="L31" title="All 2 branches missed.">		if (!empresa.isPresent())</span>
+<span class="nc" id="L32">			return &quot;sem empresa&quot;;</span>
+
+		try {
+<span class="nc" id="L35">			tributacao.setEmpresa(empresa.get());</span>
+<span class="nc" id="L36">			tributacao.setData_cadastro(Date.valueOf(dataAtual));</span>
+<span class="nc" id="L37">			tribut = tributacoes.save(tributacao);</span>
+<span class="nc" id="L38">		} catch (Exception e) {</span>
+<span class="nc" id="L39">			System.out.println(&quot;Erro &quot; + e.getMessage());</span>
+<span class="nc" id="L40">		}</span>
+
+<span class="nc" id="L42">		return tribut.getCodigo().toString();</span>
+	}
+
+	public List&lt;Tributacao&gt; lista() {
+<span class="nc" id="L46">		return tributacoes.findAll();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CaixaLancamento.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">CaixaLancamento.java</span></div><h1>CaixaLancamento.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Optional;
+
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.validation.constraints.Size;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.NumberFormat;
+
+import net.originmobi.pdv.enumerado.caixa.EstiloLancamento;
+import net.originmobi.pdv.enumerado.caixa.TipoLancamento;
+
+@Entity
+@Table(name = &quot;caixa_lancamento&quot;)
+public class CaixaLancamento implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	@Size(max = 250, message = &quot;Quantidade máxima de caracteres para observação é de 250&quot;)
+	private String observacao;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor;
+
+	@Enumerated(EnumType.STRING)
+	private TipoLancamento tipo;
+
+	@Enumerated(EnumType.STRING)
+	private EstiloLancamento estilo;
+
+	@ManyToOne
+	private Caixa caixa;
+
+	@ManyToOne
+	private Usuario usuario;
+
+	@OneToOne
+	private Recebimento recebimento;
+
+	@ManyToOne
+	private PagarParcela parcelaPagar;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy hh:mm:ss&quot;)
+	private Timestamp data_cadastro;
+
+	@Deprecated
+<span class="fc" id="L62">	public CaixaLancamento() {</span>
+<span class="fc" id="L63">	}</span>
+
+	public CaixaLancamento(String observacao, Double valor, TipoLancamento tipo, EstiloLancamento estilo, Caixa caixa,
+<span class="fc" id="L66">			Usuario usuario) {</span>
+<span class="fc" id="L67">		this.observacao = observacao;</span>
+<span class="fc" id="L68">		this.valor = valor;</span>
+<span class="fc" id="L69">		this.tipo = tipo;</span>
+<span class="fc" id="L70">		this.estilo = estilo;</span>
+<span class="fc" id="L71">		this.caixa = caixa;</span>
+<span class="fc" id="L72">		this.usuario = usuario;</span>
+<span class="fc" id="L73">	}</span>
+
+	public boolean isEntrada() {
+<span class="nc" id="L76">		return EstiloLancamento.ENTRADA.equals(estilo);</span>
+	}
+
+	public Long getCodigo() {
+<span class="nc" id="L80">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L84">		this.codigo = codigo;</span>
+<span class="nc" id="L85">	}</span>
+
+	public String getObservacao() {
+<span class="fc" id="L88">		return observacao;</span>
+	}
+
+	public void setObservacao(String observacao) {
+<span class="fc" id="L92">		this.observacao = observacao;</span>
+<span class="fc" id="L93">	}</span>
+
+	public Double getValor() {
+<span class="fc" id="L96">		return valor;</span>
+	}
+
+	public void setValor(Double valor) {
+<span class="fc" id="L100">		this.valor = valor;</span>
+<span class="fc" id="L101">	}</span>
+
+	public TipoLancamento getTipo() {
+<span class="fc" id="L104">		return tipo;</span>
+	}
+
+	public void setTipo(TipoLancamento tipo) {
+<span class="fc" id="L108">		this.tipo = tipo;</span>
+<span class="fc" id="L109">	}</span>
+
+	public EstiloLancamento getEstilo() {
+<span class="fc" id="L112">		return estilo;</span>
+	}
+
+	public void setEstilo(EstiloLancamento estilo) {
+<span class="fc" id="L116">		this.estilo = estilo;</span>
+<span class="fc" id="L117">	}</span>
+
+	public Optional&lt;Caixa&gt; getCaixa() {
+<span class="fc" id="L120">		return Optional.ofNullable(caixa);</span>
+	}
+
+	public void setCaixa(Caixa caixa) {
+<span class="fc" id="L124">		this.caixa = caixa;</span>
+<span class="fc" id="L125">	}</span>
+
+	public Timestamp getData_cadastro() {
+<span class="nc" id="L128">		return data_cadastro;</span>
+	}
+
+	public void setData_cadastro(Timestamp data_cadastro) {
+<span class="fc" id="L132">		this.data_cadastro = data_cadastro;</span>
+<span class="fc" id="L133">	}</span>
+
+	public Usuario getUsuario() {
+<span class="nc" id="L136">		return usuario;</span>
+	}
+
+	public void setUsuario(Usuario usuario) {
+<span class="nc" id="L140">		this.usuario = usuario;</span>
+<span class="nc" id="L141">	}</span>
+
+	public void setRecebimento(Recebimento recebimento) {
+<span class="nc" id="L144">		this.recebimento = recebimento;</span>
+<span class="nc" id="L145">	}</span>
+
+	public void setParcelaPagar(PagarParcela parcelaPagar) {
+<span class="fc" id="L148">		this.parcelaPagar = parcelaPagar;</span>
+<span class="fc" id="L149">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

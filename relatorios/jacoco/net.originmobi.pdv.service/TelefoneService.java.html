@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TelefoneService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.service</a> &gt; <span class="el_source">TelefoneService.java</span></div><h1>TelefoneService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.service;
+
+import java.sql.Date;
+import java.time.LocalDate;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import net.originmobi.pdv.model.Telefone;
+import net.originmobi.pdv.repository.TelefoneRepository;
+
+@Service
+<span class="fc" id="L13">public class TelefoneService {</span>
+
+	@Autowired
+	private TelefoneRepository telefones;
+
+<span class="fc" id="L18">	LocalDate dataAtual = LocalDate.now();</span>
+
+	public Telefone cadastrar(Telefone telefone) {
+<span class="nc" id="L21">		telefone.setData_cadastro(Date.valueOf(dataAtual));</span>
+		try {
+<span class="nc" id="L23">			telefones.save(telefone);</span>
+<span class="nc" id="L24">		} catch (Exception e) {</span>
+<span class="nc" id="L25">			e.getStackTrace();</span>
+<span class="nc" id="L26">		}</span>
+
+<span class="nc" id="L28">		return telefone;</span>
+	}
+
+	public Telefone telefoneCodigo(Long codigo) {
+<span class="nc" id="L32">		return telefones.findByCodigoIn(codigo);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReceberController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.controller</a> &gt; <span class="el_source">ReceberController.java</span></div><h1>ReceberController.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import net.originmobi.pdv.filter.ClienteFilter;
+import net.originmobi.pdv.model.Parcela;
+import net.originmobi.pdv.model.Pessoa;
+import net.originmobi.pdv.model.Receber;
+import net.originmobi.pdv.service.ParcelaService;
+import net.originmobi.pdv.service.PessoaService;
+import net.originmobi.pdv.service.RecebimentoService;
+
+@Controller
+@RequestMapping(&quot;/receber&quot;)
+@SessionAttributes(&quot;filtrocli&quot;)
+<span class="fc" id="L31">public class ReceberController {</span>
+
+	private static final String RECEBER_LIST = &quot;receber/list&quot;;
+
+	private static final String RECEBER_FORM = &quot;receber/form&quot;;
+
+	@Autowired
+	private PessoaService pessoas;
+
+	@Autowired
+	private ParcelaService parcelas;
+
+	@Autowired
+	private RecebimentoService recebimentos;
+
+	@SuppressWarnings(&quot;deprecation&quot;)
+	@GetMapping(&quot;/form&quot;)
+	public ModelAndView form() {
+<span class="nc" id="L49">		ModelAndView mv = new ModelAndView(RECEBER_FORM);</span>
+<span class="nc" id="L50">		mv.addObject(&quot;receber&quot;, new Receber());</span>
+<span class="nc" id="L51">		return mv;</span>
+	}
+
+	@ModelAttribute(&quot;filtrocli&quot;)
+	public ClienteFilter inicializerFilter() {
+<span class="nc" id="L56">		return new ClienteFilter();</span>
+	}
+
+	@GetMapping
+	public ModelAndView list(@ModelAttribute(&quot;filtrocli&quot;) ClienteFilter filter) {
+<span class="nc" id="L61">		ModelAndView mv = new ModelAndView(RECEBER_LIST);</span>
+<span class="nc" id="L62">		List&lt;Parcela&gt; pagina = parcelas.lista(filter);</span>
+<span class="nc" id="L63">		mv.addObject(&quot;parcelas&quot;, pagina);</span>
+<span class="nc" id="L64">		mv.addObject(&quot;totalReceber&quot;, parcelas.totalReceberCliente(filter));</span>
+
+<span class="nc" id="L66">		return mv;</span>
+	}
+
+	@RequestMapping(value = &quot;/parcelaReceber&quot;, method = RequestMethod.POST)
+	public @ResponseBody String receber(@RequestParam Map&lt;String, String&gt; request) {
+<span class="nc" id="L71">		Long parcela = Long.decode(request.get(&quot;receber&quot;));</span>
+<span class="nc" id="L72">		String vltotalPago = request.get(&quot;vltotalPago&quot;).replace(&quot;,&quot;, &quot;.&quot;);</span>
+<span class="nc" id="L73">		String acre = request.get(&quot;vlacre&quot;).replace(&quot;,&quot;, &quot;.&quot;);</span>
+<span class="nc" id="L74">		String desc = request.get(&quot;vldesc&quot;).replace(&quot;,&quot;, &quot;.&quot;);</span>
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">		Double totalPago = vltotalPago.isEmpty() ? 0.00 : Double.valueOf(vltotalPago);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">		Double acrescimo = acre.isEmpty() ? 0.00 : Double.valueOf(acre);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">		Double desconto = desc.isEmpty() ? 0.00 : Double.valueOf(desc);</span>
+
+<span class="nc" id="L80">		String mensagem = null;</span>
+
+<span class="nc" id="L82">		mensagem = parcelas.receber(parcela, totalPago, acrescimo, desconto);</span>
+
+<span class="nc" id="L84">		return mensagem;</span>
+	}
+
+	@RequestMapping(value = &quot;/parcelas&quot;, method = RequestMethod.GET)
+	public @ResponseBody String recebimento(@RequestParam Map&lt;String, String&gt; request, UriComponentsBuilder b) {
+<span class="nc" id="L89">		Long codpes = Long.decode(request.get(&quot;codpessoa&quot;));</span>
+<span class="nc" id="L90">		String[] arrayParcelas = request.get(&quot;parcelas&quot;).replace(&quot;, &quot;, &quot; &quot;).split(&quot; &quot;);</span>
+		
+<span class="nc" id="L92">		UriComponents builder = b.path(&quot;/recebimento/&quot;).build();</span>
+		
+<span class="nc" id="L94">		HttpHeaders headers = new HttpHeaders();</span>
+<span class="nc" id="L95">		headers.setLocation(builder.toUri());</span>
+		
+<span class="nc" id="L97">		String retorno = recebimentos.abrirRecebimento(codpes, arrayParcelas);</span>
+		
+<span class="nc" id="L99">		return headers.toString() + retorno;</span>
+	}
+
+	@ModelAttribute(&quot;pessoas&quot;)
+	public List&lt;Pessoa&gt; pessoas() {
+<span class="nc" id="L104">		return pessoas.lista();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PagarController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.controller</a> &gt; <span class="el_source">PagarController.java</span></div><h1>PagarController.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.controller;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.servlet.ModelAndView;
+
+import net.originmobi.pdv.filter.PagarParcelaFilter;
+import net.originmobi.pdv.model.Caixa;
+import net.originmobi.pdv.model.Fornecedor;
+import net.originmobi.pdv.model.PagarParcela;
+import net.originmobi.pdv.model.PagarTipo;
+import net.originmobi.pdv.service.CaixaService;
+import net.originmobi.pdv.service.FornecedorService;
+import net.originmobi.pdv.service.PagarParcelaService;
+import net.originmobi.pdv.service.PagarService;
+import net.originmobi.pdv.service.PagarTipoService;
+
+@Controller
+@RequestMapping(&quot;/pagar&quot;)
+@SessionAttributes(&quot;filter&quot;)
+<span class="fc" id="L37">public class PagarController {</span>
+
+	private static final String PAGAR_FORM = &quot;pagar/list&quot;;
+
+	@Autowired
+	private PagarService pagarServ;
+
+	@Autowired
+	private FornecedorService fornecedores;
+
+	@Autowired
+	private PagarParcelaService pagarParcelas;
+
+	@Autowired
+	private PagarTipoService pagartipos;
+
+	@Autowired
+	private CaixaService caixas;
+
+	@ModelAttribute(&quot;filter&quot;)
+	public PagarParcelaFilter inicializerFilter() {
+<span class="nc" id="L58">		return new PagarParcelaFilter();</span>
+	}
+	
+	@GetMapping
+	public ModelAndView list(@ModelAttribute(&quot;filter&quot;) PagarParcelaFilter filter, Pageable pageable, Model model) {
+<span class="nc" id="L63">		ModelAndView mv = new ModelAndView(PAGAR_FORM);</span>
+		
+<span class="nc" id="L65">		Page&lt;PagarParcela&gt; paginas = pagarParcelas.lista(filter, pageable);</span>
+<span class="nc" id="L66">		mv.addObject(&quot;parcelas&quot;, paginas);</span>
+		
+<span class="nc" id="L68">		model.addAttribute(&quot;qtdpaginas&quot;, paginas.getTotalPages());</span>
+<span class="nc" id="L69">		model.addAttribute(&quot;pagAtual&quot;, paginas.getPageable().getPageNumber());</span>
+<span class="nc" id="L70">		model.addAttribute(&quot;proxPagina&quot;, paginas.getPageable().next().getPageNumber());</span>
+<span class="nc" id="L71">		model.addAttribute(&quot;pagAnterior&quot;, paginas.getPageable().previousOrFirst().getPageNumber());</span>
+<span class="nc" id="L72">		model.addAttribute(&quot;hasNext&quot;, paginas.hasNext());</span>
+<span class="nc" id="L73">		model.addAttribute(&quot;hasPrevious&quot;, paginas.hasPrevious());</span>
+		
+<span class="nc" id="L75">		return mv;</span>
+	}
+
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody String cadastroDespesa(@RequestParam Map&lt;String, String&gt; request) {
+<span class="nc" id="L80">		Long codFornecedor = Long.decode(request.get(&quot;fornecedor&quot;));</span>
+<span class="nc" id="L81">		Long tipo = Long.decode(request.get(&quot;tipo&quot;));</span>
+<span class="nc" id="L82">		Double valor = Double.valueOf(request.get(&quot;valor&quot;));</span>
+<span class="nc" id="L83">		String obs = request.get(&quot;obs&quot;);</span>
+
+<span class="nc" id="L85">		DateTimeFormatter format = DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy&quot;);</span>
+<span class="nc" id="L86">		LocalDate vencimento = LocalDate.parse(request.get(&quot;vencimento&quot;), format);</span>
+<span class="nc" id="L87">		Optional&lt;PagarTipo&gt; pagarTipo = pagartipos.busca(tipo);</span>
+
+<span class="nc" id="L89">		return pagarServ.cadastrar(codFornecedor, valor, obs, vencimento, pagarTipo.get());</span>
+	}
+
+	@RequestMapping(value = &quot;/quitar&quot;, method = RequestMethod.POST)
+	public @ResponseBody String quitar(@RequestParam Map&lt;String, String&gt; request) {
+<span class="nc" id="L94">		Long codparcela = Long.decode(request.get(&quot;parcela&quot;));</span>
+<span class="nc" id="L95">		Long codCaixa = Long.decode(request.get(&quot;caixa&quot;));</span>
+
+<span class="nc" id="L97">		String pago = request.get(&quot;vlpago&quot;).replace(&quot;,&quot;, &quot;.&quot;);</span>
+<span class="nc" id="L98">		String desc = request.get(&quot;desconto&quot;).replace(&quot;,&quot;, &quot;.&quot;);</span>
+<span class="nc" id="L99">		String acre = request.get(&quot;acrescimo&quot;).replace(&quot;,&quot;, &quot;.&quot;);</span>
+
+<span class="nc bnc" id="L101" title="All 2 branches missed.">		Double vlpago = pago.isEmpty() ? 0.0 : Double.valueOf(pago);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">		Double vldesc = desc.isEmpty() ? 0.0 : Double.valueOf(desc);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">		Double vlacre = acre.isEmpty() ? 0.0 : Double.valueOf(acre);</span>
+
+<span class="nc" id="L105">		return pagarServ.quitar(codparcela, vlpago, vldesc, vlacre, codCaixa);</span>
+	}
+
+	@ModelAttribute(&quot;fornecedores&quot;)
+	public List&lt;Fornecedor&gt; fornecedores() {
+<span class="nc" id="L110">		return fornecedores.lista();</span>
+	}
+
+	@ModelAttribute(&quot;pagartipos&quot;)
+	public List&lt;PagarTipo&gt; pagartipo() {
+<span class="nc" id="L115">		return pagartipos.lista();</span>
+	}
+
+	@ModelAttribute(&quot;caixasabertos&quot;)
+	public List&lt;Caixa&gt; caixasAbertos() {
+<span class="nc" id="L120">		return caixas.caixasAbertos();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

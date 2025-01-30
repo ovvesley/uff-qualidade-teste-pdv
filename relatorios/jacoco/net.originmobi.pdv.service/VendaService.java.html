@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VendaService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.service</a> &gt; <span class="el_source">VendaService.java</span></div><h1>VendaService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.service;
+
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import net.originmobi.pdv.controller.TituloService;
+import net.originmobi.pdv.enumerado.EntradaSaida;
+import net.originmobi.pdv.enumerado.TituloTipo;
+import net.originmobi.pdv.enumerado.VendaSituacao;
+import net.originmobi.pdv.enumerado.caixa.EstiloLancamento;
+import net.originmobi.pdv.enumerado.caixa.TipoLancamento;
+import net.originmobi.pdv.filter.VendaFilter;
+import net.originmobi.pdv.model.Caixa;
+import net.originmobi.pdv.model.CaixaLancamento;
+import net.originmobi.pdv.model.PagamentoTipo;
+import net.originmobi.pdv.model.Receber;
+import net.originmobi.pdv.model.Titulo;
+import net.originmobi.pdv.model.Usuario;
+import net.originmobi.pdv.model.Venda;
+import net.originmobi.pdv.model.VendaProduto;
+import net.originmobi.pdv.repository.VendaRepository;
+import net.originmobi.pdv.service.cartao.CartaoLancamentoService;
+import net.originmobi.pdv.singleton.Aplicacao;
+import net.originmobi.pdv.utilitarios.DataAtual;
+
+@Service
+<span class="fc" id="L38">public class VendaService {</span>
+
+	@Autowired
+	private VendaRepository vendas;
+
+	@Autowired
+	private UsuarioService usuarios;
+
+	@Autowired
+	private VendaProdutoService vendaProdutos;
+
+	@Autowired
+	private PagamentoTipoService formaPagamentos;
+
+	@Autowired
+	private CaixaService caixas;
+
+	@Autowired
+	private ReceberService receberServ;
+
+	@Autowired
+	private ParcelaService parcelas;
+
+	@Autowired
+	private CaixaLancamentoService lancamentos;
+
+	@Autowired
+	private TituloService tituloService;
+
+	@Autowired
+	private CartaoLancamentoService cartaoLancamento;
+
+	@Autowired
+	private ProdutoService produtos;
+
+<span class="fc" id="L73">	private Timestamp dataHoraAtual = new Timestamp(System.currentTimeMillis());</span>
+
+	public Long abreVenda(Venda venda) {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">		if (venda.getCodigo() == null) {</span>
+<span class="nc" id="L77">			Aplicacao aplicacao = Aplicacao.getInstancia();</span>
+<span class="nc" id="L78">			Usuario usuario = usuarios.buscaUsuario(aplicacao.getUsuarioAtual());</span>
+
+<span class="nc" id="L80">			venda.setData_cadastro(dataHoraAtual);</span>
+<span class="nc" id="L81">			venda.setSituacao(VendaSituacao.ABERTA);</span>
+<span class="nc" id="L82">			venda.setUsuario(usuario);</span>
+<span class="nc" id="L83">			venda.setValor_produtos(0.00);</span>
+
+			try {
+<span class="nc" id="L86">				vendas.save(venda);</span>
+<span class="nc" id="L87">			} catch (Exception e) {</span>
+<span class="nc" id="L88">				e.getStackTrace();</span>
+<span class="nc" id="L89">			}</span>
+
+<span class="nc" id="L91">		} else {</span>
+
+			try {
+<span class="nc" id="L94">				vendas.updateDadosVenda(venda.getPessoa(), venda.getObservacao(), venda.getCodigo());</span>
+<span class="nc" id="L95">			} catch (Exception e) {</span>
+<span class="nc" id="L96">				e.getStackTrace();</span>
+<span class="nc" id="L97">			}</span>
+
+		}
+
+<span class="nc" id="L101">		return venda.getCodigo();</span>
+	}
+
+	public Page&lt;Venda&gt; busca(VendaFilter filter, String situacao, Pageable pageable) {
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">		VendaSituacao situacaoVenda = situacao.equals(&quot;ABERTA&quot;) ? VendaSituacao.ABERTA : VendaSituacao.FECHADA;</span>
+
+<span class="nc bnc" id="L108" title="All 2 branches missed.">		if (filter.getCodigo() != null)</span>
+<span class="nc" id="L109">			return vendas.findByCodigoIn(filter.getCodigo(), pageable);</span>
+		else
+<span class="nc" id="L111">			return vendas.findBySituacaoEquals(situacaoVenda, pageable);</span>
+	}
+
+	public String addProduto(Long codVen, Long codPro, Double vlBalanca) {
+<span class="nc" id="L115">		String vendaSituacao = vendas.verificaSituacao(codVen);</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		if (vendaSituacao.equals(VendaSituacao.ABERTA.toString())) {</span>
+<span class="nc" id="L118">			VendaProduto vendaProduto = null;</span>
+
+<span class="nc" id="L120">			vendaProduto = new VendaProduto(codPro, codVen, vlBalanca);</span>
+
+			try {
+<span class="nc" id="L123">				vendaProdutos.salvar(vendaProduto);</span>
+<span class="nc" id="L124">			} catch (Exception e) {</span>
+<span class="nc" id="L125">				e.getStackTrace();</span>
+<span class="nc" id="L126">			}</span>
+
+<span class="nc" id="L128">		} else {</span>
+<span class="nc" id="L129">			return &quot;Venda fechada&quot;;</span>
+		}
+
+<span class="nc" id="L132">		return &quot;ok&quot;;</span>
+	}
+
+	public String removeProduto(Long posicaoProd, Long codVenda) {
+		try {
+<span class="nc" id="L137">			Venda venda = vendas.findByCodigoEquals(codVenda);</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">			if (venda.getSituacao().equals(VendaSituacao.ABERTA))</span>
+<span class="nc" id="L139">				vendaProdutos.removeProduto(posicaoProd);</span>
+			else
+<span class="nc" id="L141">				return &quot;Venda fechada&quot;;</span>
+<span class="nc" id="L142">		} catch (Exception e) {</span>
+<span class="nc" id="L143">			e.getStackTrace();</span>
+<span class="nc" id="L144">		}</span>
+
+<span class="nc" id="L146">		return &quot;ok&quot;;</span>
+	}
+
+	public List&lt;Venda&gt; lista() {
+<span class="nc" id="L150">		return vendas.findAll();</span>
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public String fechaVenda(Long venda, Long pagamentotipo, Double vlprodutos, Double desconto, Double acrescimo,
+			String[] vlParcelas, String[] titulos) {
+
+<span class="nc bnc" id="L157" title="All 2 branches missed.">		if (!vendaIsAberta(venda))</span>
+<span class="nc" id="L158">			throw new RuntimeException(&quot;venda fechada&quot;);</span>
+
+<span class="nc bnc" id="L160" title="All 2 branches missed.">		if (vlprodutos &lt;= 0)</span>
+<span class="nc" id="L161">			throw new RuntimeException(&quot;Venda sem valor, verifique&quot;);</span>
+
+<span class="nc" id="L163">		DataAtual dataAtual = new DataAtual();</span>
+<span class="nc" id="L164">		PagamentoTipo formaPagamento = formaPagamentos.busca(pagamentotipo);</span>
+
+<span class="nc" id="L166">		String[] formaPagar = formaPagamento.getFormaPagamento().replace(&quot;/&quot;, &quot; &quot;).split(&quot; &quot;);</span>
+
+		// vlTotal é usado no lancamento
+<span class="nc" id="L169">		Double vlTotal = (vlprodutos + acrescimo) - desconto;</span>
+
+<span class="nc" id="L171">		int qtdVezes = formaPagar.length;</span>
+
+<span class="nc" id="L173">		int sequencia = 1;</span>
+
+		// crio este MAP para receber todas as formas de pagamento e poder
+		// pesquisar por uma chave que é o tipo da forma, assim posso verificar
+		// se o tipo 00 esta presente.
+<span class="nc" id="L178">		Map&lt;String, String&gt; modeloPagar = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">		for (int i = 0; i &lt; formaPagar.length; i++) {</span>
+<span class="nc" id="L180">			modeloPagar.put(formaPagar[i], formaPagar[i]);</span>
+		}
+
+<span class="nc" id="L183">		Venda dadosVenda = vendas.findByCodigoEquals(venda);</span>
+<span class="nc" id="L184">		dadosVenda.setPagamentotipo(formaPagamento);</span>
+
+		// gera um receber
+<span class="nc" id="L187">		Receber receber = new Receber(&quot;Recebimento referente a venda &quot; + venda, vlTotal, dadosVenda.getPessoa(),</span>
+<span class="nc" id="L188">				dataAtual.dataAtualTimeStamp(), dadosVenda);</span>
+
+		try {
+<span class="nc" id="L191">			receberServ.cadastrar(receber);</span>
+<span class="nc" id="L192">		} catch (Exception e) {</span>
+<span class="nc" id="L193">			System.out.println(e);</span>
+<span class="nc" id="L194">			throw new RuntimeException(&quot;Erro ao fechar a venda, chame o suporte&quot;);</span>
+<span class="nc" id="L195">		}</span>
+
+<span class="nc" id="L197">		Double desc = desconto / vlParcelas.length;</span>
+<span class="nc" id="L198">		Double acre = acrescimo / vlParcelas.length;</span>
+
+		// verifica a forma de pagamento para realizar o lançamento apropriado
+<span class="nc bnc" id="L201" title="All 2 branches missed.">		for (int i = 0; i &lt; formaPagar.length; i++) {</span>
+<span class="nc" id="L202">			Optional&lt;Titulo&gt; titulo = tituloService.busca(Long.decode(titulos[i]));</span>
+
+			// venda à vista
+<span class="nc bnc" id="L205" title="All 2 branches missed.">			if (formaPagar[i].equals(&quot;00&quot;)) {</span>
+
+				// no dinheiro
+<span class="nc bnc" id="L208" title="All 2 branches missed.">				if (titulo.get().getTipo().getSigla().equals(TituloTipo.DIN.toString())) {</span>
+					// verifica se o caixa esta aberto para realizar o lançamento no mesmo
+<span class="nc bnc" id="L210" title="All 2 branches missed.">					if (!caixas.caixaIsAberto())</span>
+<span class="nc" id="L211">						throw new RuntimeException(&quot;nenhum caixa aberto&quot;);</span>
+
+<span class="nc" id="L213">					qtdVezes = avistaDinheiro(vlprodutos, vlParcelas, formaPagar, qtdVezes, i, desc, acre);</span>
+				}
+
+				// se for no cartão de debito ou crédito
+<span class="nc bnc" id="L217" title="All 2 branches missed.">				else if (titulo.get().getTipo().getSigla().equals(TituloTipo.CARTDEB.toString())</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">						|| titulo.get().getTipo().getSigla().equals(TituloTipo.CARTCRED.toString())) {</span>
+
+<span class="nc" id="L220">					Double vl_parcela = Double.valueOf(vlParcelas[i]);</span>
+
+<span class="nc" id="L222">					cartaoLancamento.lancamento(vl_parcela, titulo);</span>
+<span class="nc" id="L223">				}</span>
+
+			} else {
+				// venda a prazo
+
+<span class="nc bnc" id="L228" title="All 2 branches missed.">				if (dadosVenda.getPessoa() == null)</span>
+<span class="nc" id="L229">					throw new RuntimeException(&quot;Venda sem cliente, verifique&quot;);</span>
+
+				// no dinheiro
+<span class="nc" id="L232">				sequencia = aprazo(vlprodutos, vlParcelas, dataAtual, formaPagar, qtdVezes, sequencia, receber, i, desc,</span>
+						acre);
+			}
+
+			try {
+<span class="nc" id="L237">				Double vlFinal = (vlprodutos + acrescimo) - desconto;</span>
+				// realiza o fechamento da venda
+<span class="nc" id="L239">				vendas.fechaVenda(venda, VendaSituacao.FECHADA, vlFinal, desconto, acrescimo,</span>
+<span class="nc" id="L240">						dataAtual.dataAtualTimeStamp(), formaPagamento);</span>
+<span class="nc" id="L241">			} catch (Exception e) {</span>
+<span class="nc" id="L242">				System.out.println(e);</span>
+<span class="nc" id="L243">				throw new RuntimeException(&quot;Erro ao fechar a venda, chame o suporte&quot;);</span>
+<span class="nc" id="L244">			}</span>
+
+		}
+		
+		// Responsável por realizar a movimentação de estoque
+<span class="nc" id="L249">		produtos.movimentaEstoque(venda, EntradaSaida.SAIDA);</span>
+
+<span class="nc" id="L251">		return &quot;Venda finalizada com sucesso&quot;;</span>
+	}
+
+	/*
+	 * Responsável por realizar o lançamento quando a parcela da venda é a prazo
+	 * 
+	 */
+	private int aprazo(Double vlprodutos, String[] vlParcelas, DataAtual dataAtual, String[] formaPagar, int qtdVezes,
+			int sequencia, Receber receber, int i, Double acre, Double desc) {
+
+<span class="nc bnc" id="L261" title="All 2 branches missed.">		if (vlParcelas[i].isEmpty()) {</span>
+<span class="nc" id="L262">			throw new RuntimeException(&quot;valor de recebimento invalido&quot;);</span>
+		}
+
+		try {
+<span class="nc" id="L266">			Double valor_parcela = (Double.valueOf(vlParcelas[i]) + acre) - desc;</span>
+<span class="nc" id="L267">			parcelas.gerarParcela(valor_parcela, 0.00, 0.00, 0.0, valor_parcela, receber, 0, sequencia,</span>
+<span class="nc" id="L268">					dataAtual.dataAtualTimeStamp(),</span>
+<span class="nc" id="L269">					Date.valueOf(dataAtual.DataAtualIncrementa(Integer.parseInt(formaPagar[i]))));</span>
+
+<span class="nc" id="L271">		} catch (Exception e) {</span>
+<span class="nc" id="L272">			e.getMessage();</span>
+<span class="nc" id="L273">			throw new RuntimeException();</span>
+<span class="nc" id="L274">		}</span>
+
+<span class="nc" id="L276">		sequencia++;</span>
+<span class="nc" id="L277">		return sequencia;</span>
+	}
+
+	/*
+	 * Responsável por realizar o lançamento quando a parcela da venda é à vista e
+	 * no dinheiro
+	 * 
+	 */
+	private int avistaDinheiro(Double vlprodutos, String[] vlParcelas, String[] formaPagar, int qtdVezes, int i,
+			Double acre, Double desc) {
+
+		// decremento ela para usa-la no a prazo, sem a sequencia do a
+		// vista
+<span class="nc" id="L290">		qtdVezes = qtdVezes - 1;</span>
+
+<span class="nc bnc" id="L292" title="All 2 branches missed.">		if (vlParcelas[i].isEmpty())</span>
+<span class="nc" id="L293">			throw new RuntimeException(&quot;Parcela sem valor, verifique&quot;);</span>
+
+<span class="nc" id="L295">		Double totalParcelas = 0.0;</span>
+
+		// pega a soma de todas as parcelas para comparar com o valor recebido
+<span class="nc bnc" id="L298" title="All 2 branches missed.">		for (int aux = 0; aux &lt; vlParcelas.length; aux++)</span>
+<span class="nc" id="L299">			totalParcelas += Double.valueOf(vlParcelas[i]);</span>
+
+<span class="nc bnc" id="L301" title="All 2 branches missed.">		if (!totalParcelas.equals(vlprodutos))</span>
+<span class="nc" id="L302">			throw new RuntimeException(&quot;Valor das parcelas diferente do valor total de produtos, verifique&quot;);</span>
+
+<span class="nc" id="L304">		Optional&lt;Caixa&gt; caixa = caixas.caixaAberto();</span>
+
+<span class="nc" id="L306">		Aplicacao aplicacao = Aplicacao.getInstancia();</span>
+<span class="nc" id="L307">		Usuario usuario = usuarios.buscaUsuario(aplicacao.getUsuarioAtual());</span>
+
+<span class="nc" id="L309">		Double valor_parcela = (Double.valueOf(vlParcelas[i]) + acre) - desc;</span>
+<span class="nc" id="L310">		CaixaLancamento lancamento = new CaixaLancamento(&quot;Recebimento de venda á vista&quot;, valor_parcela,</span>
+<span class="nc" id="L311">				TipoLancamento.RECEBIMENTO, EstiloLancamento.ENTRADA, caixa.get(), usuario);</span>
+
+		try {
+<span class="nc" id="L314">			lancamentos.lancamento(lancamento);</span>
+<span class="nc" id="L315">		} catch (Exception e) {</span>
+<span class="nc" id="L316">			System.out.println(e);</span>
+<span class="nc" id="L317">			throw new RuntimeException(&quot;Erro ao fechar a venda, chame o suporte&quot;);</span>
+<span class="nc" id="L318">		}</span>
+<span class="nc" id="L319">		return qtdVezes;</span>
+	}
+
+	private Boolean vendaIsAberta(Long codVenda) {
+<span class="nc" id="L323">		Venda venda = vendas.findByCodigoEquals(codVenda);</span>
+<span class="nc" id="L324">		return venda.isAberta();</span>
+	}
+
+	public int qtdAbertos() {
+<span class="nc" id="L328">		return vendas.qtdVendasEmAberto();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoginUserDatailsService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.security</a> &gt; <span class="el_source">LoginUserDatailsService.java</span></div><h1>LoginUserDatailsService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.security;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
+
+import net.originmobi.pdv.model.GrupoUsuario;
+import net.originmobi.pdv.model.Permissoes;
+import net.originmobi.pdv.model.Usuario;
+import net.originmobi.pdv.repository.GrupoUsuarioRepository;
+import net.originmobi.pdv.repository.PermissoesRespository;
+import net.originmobi.pdv.repository.UsuarioRepository;
+
+@Component
+<span class="fc" id="L23">public class LoginUserDatailsService implements UserDetailsService {</span>
+
+	@Autowired
+	private UsuarioRepository usuarios;
+
+	@Autowired
+	private GrupoUsuarioRepository grupos;
+
+	@Autowired
+	private PermissoesRespository permissoes;
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+<span class="nc" id="L36">		Usuario usuario = usuarios.findByUserContaining(username);</span>
+
+<span class="nc bnc" id="L38" title="All 2 branches missed.">		if (usuario == null)</span>
+<span class="nc" id="L39">			throw new UsernameNotFoundException(&quot;Usuário não encontrado!&quot;);</span>
+
+<span class="nc" id="L41">		return new UsuarioSistema(usuario.getPessoa().getNome(), usuario.getUser(), usuario.getSenha(),</span>
+<span class="nc" id="L42">				authorities(usuario));</span>
+	}
+
+	public Collection&lt;? extends GrantedAuthority&gt; authorities(Usuario usuario) {
+<span class="nc" id="L46">		return authorities(grupos.findByUsuarioIn(usuario));</span>
+	}
+
+	public Collection&lt;? extends GrantedAuthority&gt; authorities(List&lt;GrupoUsuario&gt; grupos) {
+<span class="nc" id="L50">		Collection&lt;GrantedAuthority&gt; auths = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L52" title="All 2 branches missed.">		for (GrupoUsuario grupo : grupos) {</span>
+<span class="nc" id="L53">			List&lt;Permissoes&gt; lista = permissoes.findByGrupoUsuarioIn(grupo);</span>
+
+<span class="nc bnc" id="L55" title="All 2 branches missed.">			for (Permissoes permissao : lista) {</span>
+<span class="nc" id="L56">				auths.add(new SimpleGrantedAuthority(&quot;ROLE_&quot; + permissao.getNome()));</span>
+<span class="nc" id="L57">			}</span>
+<span class="nc" id="L58">		}</span>
+<span class="nc" id="L59">		return auths;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

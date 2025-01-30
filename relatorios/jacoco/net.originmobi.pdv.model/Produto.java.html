@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Produto.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">Produto.java</span></div><h1>Produto.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+import java.sql.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.NumberFormat;
+
+import net.originmobi.pdv.enumerado.Ativo;
+import net.originmobi.pdv.enumerado.produto.ProdutoBalanca;
+import net.originmobi.pdv.enumerado.produto.ProdutoControleEstoque;
+import net.originmobi.pdv.enumerado.produto.ProdutoSubstTributaria;
+import net.originmobi.pdv.enumerado.produto.ProdutoVendavel;
+
+@Entity
+public class Produto implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	@NotBlank(message = &quot;Descrição não pode ser vazia&quot;)
+	@Size(min = 3, max = 50)
+	private String descricao;
+
+	@NumberFormat(pattern = &quot;#,##0.00&quot;)
+	private Double valor_custo;
+
+	@NumberFormat(pattern = &quot;#,##0.00&quot;)
+	private Double valor_venda;
+
+	@NumberFormat(pattern = &quot;#,##0.00&quot;)
+	@Transient
+	private Double valor_balanca;
+
+	@Column(name = &quot;balanca&quot;)
+	@Enumerated(EnumType.ORDINAL)
+	private ProdutoBalanca balanca;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private java.util.Date data_validade;
+
+	@Enumerated(EnumType.STRING)
+	private ProdutoVendavel vendavel;
+
+	@Enumerated(EnumType.STRING)
+	private Ativo ativo;
+
+	@Size(max = 10, message = &quot;Unidade de conter no máximo 10 caracteres&quot;)
+	private String unidade;
+
+	@Enumerated(EnumType.ORDINAL)
+	private ProdutoSubstTributaria subtributaria;
+
+	@Size(max = 8)
+	private String ncm;
+
+	@Size(max = 7)
+	private String cest;
+
+	private Date data_cadastro;
+
+	@Enumerated(EnumType.STRING)
+	private ProdutoControleEstoque controla_estoque;
+
+	@ManyToOne
+	private Fornecedor fornecedor;
+
+	@ManyToOne
+	private Grupo grupo;
+
+	@ManyToOne
+	private Categoria categoria;
+
+	@ManyToOne
+	private Tributacao tributacao;
+
+	@ManyToOne
+	@JoinColumn(name = &quot;bc_icms_codigo&quot;)
+	private ModBcIcms modBcIcms;
+
+	@OneToOne(mappedBy = &quot;produto&quot;)
+	private ProdutoEstoque estoque;
+
+<span class="fc" id="L101">	public Produto() {</span>
+<span class="fc" id="L102">	}</span>
+
+	public Long getCodigo() {
+<span class="nc" id="L105">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L109">		this.codigo = codigo;</span>
+<span class="nc" id="L110">	}</span>
+
+	public String getDescricao() {
+<span class="nc" id="L113">		return descricao;</span>
+	}
+
+	public void setDescricao(String descricao) {
+<span class="nc" id="L117">		this.descricao = descricao;</span>
+<span class="nc" id="L118">	}</span>
+
+	public Double getValor_custo() {
+<span class="nc" id="L121">		return valor_custo;</span>
+	}
+
+	public void setValor_custo(Double valor_custo) {
+<span class="nc" id="L125">		this.valor_custo = valor_custo;</span>
+<span class="nc" id="L126">	}</span>
+
+	public Double getValor_venda() {
+<span class="nc" id="L129">		return valor_venda;</span>
+	}
+
+	public void setValor_venda(Double valor_venda) {
+<span class="nc" id="L133">		this.valor_venda = valor_venda;</span>
+<span class="nc" id="L134">	}</span>
+
+	public Double getValor_balanca() {
+<span class="nc" id="L137">		return valor_balanca;</span>
+	}
+
+	public void setValor_balanca(Double valor_balanca) {
+<span class="nc" id="L141">		this.valor_balanca = valor_balanca;</span>
+<span class="nc" id="L142">	}</span>
+
+	public java.util.Date getData_validade() {
+<span class="nc" id="L145">		return data_validade;</span>
+	}
+
+	public void setData_validade(java.util.Date data_validade) {
+<span class="nc" id="L149">		this.data_validade = data_validade;</span>
+<span class="nc" id="L150">	}</span>
+
+	public void setAtivo(Ativo ativo) {
+<span class="nc" id="L153">		this.ativo = ativo;</span>
+<span class="nc" id="L154">	}</span>
+
+	public Date getData_cadastro() {
+<span class="nc" id="L157">		return data_cadastro;</span>
+	}
+
+	public void setData_cadastro(Date data_cadastro) {
+<span class="nc" id="L161">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L162">	}</span>
+
+	public Fornecedor getFornecedor() {
+<span class="nc" id="L165">		return fornecedor;</span>
+	}
+
+	public void setFornecedor(Fornecedor fornecedor) {
+<span class="nc" id="L169">		this.fornecedor = fornecedor;</span>
+<span class="nc" id="L170">	}</span>
+
+	public Grupo getGrupo() {
+<span class="nc" id="L173">		return grupo;</span>
+	}
+
+	public void setGrupo(Grupo grupo) {
+<span class="nc" id="L177">		this.grupo = grupo;</span>
+<span class="nc" id="L178">	}</span>
+
+	public Categoria getCategoria() {
+<span class="nc" id="L181">		return categoria;</span>
+	}
+
+	public void setCategoria(Categoria categoria) {
+<span class="nc" id="L185">		this.categoria = categoria;</span>
+<span class="nc" id="L186">	}</span>
+
+	public ProdutoBalanca getBalanca() {
+<span class="nc" id="L189">		return balanca;</span>
+	}
+
+	public void setBalanca(ProdutoBalanca balanca) {
+<span class="nc" id="L193">		this.balanca = balanca;</span>
+<span class="nc" id="L194">	}</span>
+
+	public String getUnidade() {
+<span class="nc" id="L197">		return unidade;</span>
+	}
+
+	public void setUnidade(String unidade) {
+<span class="nc" id="L201">		this.unidade = unidade;</span>
+<span class="nc" id="L202">	}</span>
+
+	public ProdutoSubstTributaria getSubtributaria() {
+<span class="nc" id="L205">		return subtributaria;</span>
+	}
+
+	public void setSubtributaria(ProdutoSubstTributaria subtributaria) {
+<span class="nc" id="L209">		this.subtributaria = subtributaria;</span>
+<span class="nc" id="L210">	}</span>
+
+	public String getNcm() {
+<span class="nc" id="L213">		return ncm;</span>
+	}
+
+	public void setNcm(String ncm) {
+<span class="nc" id="L217">		this.ncm = ncm;</span>
+<span class="nc" id="L218">	}</span>
+
+	public String getCest() {
+<span class="nc" id="L221">		return cest;</span>
+	}
+
+	public void setCest(String cest) {
+<span class="nc" id="L225">		this.cest = cest;</span>
+<span class="nc" id="L226">	}</span>
+
+	public Tributacao getTributacao() {
+<span class="nc" id="L229">		return tributacao;</span>
+	}
+
+	public void setTributacao(Tributacao tributacao) {
+<span class="nc" id="L233">		this.tributacao = tributacao;</span>
+<span class="nc" id="L234">	}</span>
+
+	public ModBcIcms getModBcIcms() {
+<span class="nc" id="L237">		return modBcIcms;</span>
+	}
+
+	public void setModBcIcms(ModBcIcms modBcIcms) {
+<span class="nc" id="L241">		this.modBcIcms = modBcIcms;</span>
+<span class="nc" id="L242">	}</span>
+
+	public ProdutoVendavel getVendavel() {
+<span class="nc" id="L245">		return vendavel;</span>
+	}
+
+	public void setVendavel(ProdutoVendavel vendavel) {
+<span class="nc" id="L249">		this.vendavel = vendavel;</span>
+<span class="nc" id="L250">	}</span>
+
+	public Ativo getAtivo() {
+<span class="nc" id="L253">		return ativo;</span>
+	}
+
+	public ProdutoEstoque getEstoque() {
+<span class="nc" id="L257">		return estoque;</span>
+	}
+
+	public void setEstoque(ProdutoEstoque estoque) {
+<span class="nc" id="L261">		this.estoque = estoque;</span>
+<span class="nc" id="L262">	}</span>
+
+	public ProdutoControleEstoque getControla_estoque() {
+<span class="nc" id="L265">		return controla_estoque;</span>
+	}
+
+	public void setControla_estoque(ProdutoControleEstoque controla_estoque) {
+<span class="nc" id="L269">		this.controla_estoque = controla_estoque;</span>
+<span class="nc" id="L270">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

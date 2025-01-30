@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Caixa.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.model</a> &gt; <span class="el_source">Caixa.java</span></div><h1>Caixa.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.model;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Date;
+
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.validation.constraints.Size;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.NumberFormat;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import net.originmobi.pdv.enumerado.caixa.CaixaTipo;
+
+@Entity
+public class Caixa implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long codigo;
+
+	@Size(max = 250, message = &quot;Valor máximo para descrição é de 250 caracteres&quot;)
+	private String Descricao;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_abertura;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_total;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_fechamento;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_entrada;
+
+	@NumberFormat(pattern = &quot;##,##0.00&quot;)
+	private Double valor_saida;
+
+	@Enumerated(EnumType.STRING)
+	private CaixaTipo tipo;
+
+	private String agencia;
+	private String conta;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Date data_cadastro;
+
+	@DateTimeFormat(pattern = &quot;dd/MM/yyyy&quot;)
+	private Timestamp data_fechamento;
+
+	@ManyToOne
+	@JsonIgnore
+	private Usuario usuario;
+
+<span class="fc" id="L66">	public Caixa() {</span>
+<span class="fc" id="L67">	}</span>
+
+	public Caixa(String descricao, CaixaTipo tipo, Double valor_abertura, Double valor_total, Double valor_fechamento,
+<span class="nc" id="L70">			Date data_cadastro, Timestamp data_fechamento, Usuario usuario) {</span>
+<span class="nc" id="L71">		this.Descricao = descricao;</span>
+<span class="nc" id="L72">		this.tipo = tipo;</span>
+<span class="nc" id="L73">		this.valor_abertura = valor_abertura;</span>
+<span class="nc" id="L74">		this.valor_total = valor_total;</span>
+<span class="nc" id="L75">		this.valor_fechamento = valor_fechamento;</span>
+<span class="nc" id="L76">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L77">		this.data_fechamento = data_fechamento;</span>
+<span class="nc" id="L78">		this.usuario = usuario;</span>
+<span class="nc" id="L79">	}</span>
+
+	@Override
+	public String toString() {
+<span class="nc" id="L83">		return &quot;Caixa [codigo=&quot; + codigo + &quot;, descricao=&quot; + Descricao + &quot;]&quot;;</span>
+	}
+
+	public Boolean isCofre() {
+<span class="nc" id="L87">		return tipo.equals(CaixaTipo.COFRE);</span>
+	}
+	
+	public boolean isBanco() {
+<span class="nc" id="L91">		return tipo.equals(CaixaTipo.BANCO);</span>
+	}
+
+	public boolean isAberto() {
+<span class="nc bnc" id="L95" title="All 2 branches missed.">		return null == data_fechamento;</span>
+	}
+
+	public Long getCodigo() {
+<span class="nc" id="L99">		return codigo;</span>
+	}
+
+	public void setCodigo(Long codigo) {
+<span class="nc" id="L103">		this.codigo = codigo;</span>
+<span class="nc" id="L104">	}</span>
+
+	public String getDescricao() {
+<span class="nc" id="L107">		return Descricao;</span>
+	}
+
+	public void setDescricao(String descricao) {
+<span class="nc" id="L111">		Descricao = descricao;</span>
+<span class="nc" id="L112">	}</span>
+
+	public Double getValor_abertura() {
+<span class="nc" id="L115">		return valor_abertura;</span>
+	}
+
+	public void setValor_abertura(Double valor_abertura) {
+<span class="nc" id="L119">		this.valor_abertura = valor_abertura;</span>
+<span class="nc" id="L120">	}</span>
+
+	public Double getValor_total() {
+<span class="fc" id="L123">		return valor_total;</span>
+	}
+
+	public void setValor_total(Double valor_total) {
+<span class="fc" id="L127">		this.valor_total = valor_total;</span>
+<span class="fc" id="L128">	}</span>
+
+	public Double getValor_fechamento() {
+<span class="nc" id="L131">		return valor_fechamento;</span>
+	}
+
+	public void setValor_fechamento(Double valor_fechamento) {
+<span class="nc" id="L135">		this.valor_fechamento = valor_fechamento;</span>
+<span class="nc" id="L136">	}</span>
+
+	public Date getData_cadastro() {
+<span class="nc" id="L139">		return data_cadastro;</span>
+	}
+
+	public void setData_cadastro(Date data_cadastro) {
+<span class="nc" id="L143">		this.data_cadastro = data_cadastro;</span>
+<span class="nc" id="L144">	}</span>
+
+	public Timestamp getData_fechamento() {
+<span class="nc" id="L147">		return data_fechamento;</span>
+	}
+
+	public void setData_fechamento(Timestamp data_fechamento) {
+<span class="fc" id="L151">		this.data_fechamento = data_fechamento;</span>
+<span class="fc" id="L152">	}</span>
+
+	public Usuario getUsuario() {
+<span class="nc" id="L155">		return usuario;</span>
+	}
+
+	public void setUsuario(Usuario usuario) {
+<span class="nc" id="L159">		this.usuario = usuario;</span>
+<span class="nc" id="L160">	}</span>
+
+	public Double getValor_entrada() {
+<span class="nc" id="L163">		return valor_entrada;</span>
+	}
+
+	public void setValor_entrada(Double valor_entrada) {
+<span class="nc" id="L167">		this.valor_entrada = valor_entrada;</span>
+<span class="nc" id="L168">	}</span>
+
+	public Double getValor_saida() {
+<span class="nc" id="L171">		return valor_saida;</span>
+	}
+
+	public void setValor_saida(Double valor_saida) {
+<span class="nc" id="L175">		this.valor_saida = valor_saida;</span>
+<span class="nc" id="L176">	}</span>
+
+	public CaixaTipo getTipo() {
+<span class="nc" id="L179">		return tipo;</span>
+	}
+
+	public void setTipo(CaixaTipo tipo) {
+<span class="nc" id="L183">		this.tipo = tipo;</span>
+<span class="nc" id="L184">	}</span>
+
+	public String getAgencia() {
+<span class="nc" id="L187">		return agencia;</span>
+	}
+
+	public void setAgencia(String agencia) {
+<span class="nc" id="L191">		this.agencia = agencia;</span>
+<span class="nc" id="L192">	}</span>
+
+	public String getConta() {
+<span class="nc" id="L195">		return conta;</span>
+	}
+
+	public void setConta(String conta) {
+<span class="nc" id="L199">		this.conta = conta;</span>
+<span class="nc" id="L200">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

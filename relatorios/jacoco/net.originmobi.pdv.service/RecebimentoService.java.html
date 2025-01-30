@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RecebimentoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.service</a> &gt; <span class="el_source">RecebimentoService.java</span></div><h1>RecebimentoService.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ibm.icu.text.DecimalFormat;
+
+import net.originmobi.pdv.controller.TituloService;
+import net.originmobi.pdv.enumerado.TituloTipo;
+import net.originmobi.pdv.enumerado.caixa.EstiloLancamento;
+import net.originmobi.pdv.enumerado.caixa.TipoLancamento;
+import net.originmobi.pdv.model.Caixa;
+import net.originmobi.pdv.model.CaixaLancamento;
+import net.originmobi.pdv.model.Parcela;
+import net.originmobi.pdv.model.Pessoa;
+import net.originmobi.pdv.model.Recebimento;
+import net.originmobi.pdv.model.Titulo;
+import net.originmobi.pdv.model.Usuario;
+import net.originmobi.pdv.repository.RecebimentoRepository;
+import net.originmobi.pdv.service.cartao.CartaoLancamentoService;
+import net.originmobi.pdv.singleton.Aplicacao;
+import net.originmobi.pdv.utilitarios.DataAtual;
+
+@Service
+<span class="fc" id="L31">public class RecebimentoService {</span>
+
+	@Autowired
+	private RecebimentoRepository recebimentos;
+
+	@Autowired
+	private PessoaService pessoas;
+
+	@Autowired
+	private RecebimentoParcelaService receParcelas;
+
+	@Autowired
+	private ParcelaService parcelas;
+
+	@Autowired
+	private CaixaService caixas;
+
+	@Autowired
+	private UsuarioService usuarios;
+
+	@Autowired
+	private CaixaLancamentoService lancamentos;
+
+	@Autowired
+	private TituloService titulos;
+
+	@Autowired
+	private CartaoLancamentoService cartaoLancamentos;
+
+	public String abrirRecebimento(Long codpes, String[] arrayParcelas) {
+<span class="nc" id="L61">		List&lt;Parcela&gt; lista = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L63">		DataAtual dataAtual = new DataAtual();</span>
+<span class="nc" id="L64">		Double vlTotal = 0.0;</span>
+
+<span class="nc bnc" id="L66" title="All 2 branches missed.">		for (int i = 0; i &lt; arrayParcelas.length; i++) {</span>
+<span class="nc" id="L67">			Parcela parcela = parcelas.busca(Long.decode(arrayParcelas[i]));</span>
+
+<span class="nc bnc" id="L69" title="All 2 branches missed.">			if (parcela.getQuitado() == 1)</span>
+<span class="nc" id="L70">				throw new RuntimeException(&quot;Parcela &quot; + parcela.getCodigo() + &quot; já esta quitada, verifique.&quot;);</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">			if (parcela.getReceber().getPessoa().getCodigo() != codpes)</span>
+<span class="nc" id="L73">				throw new RuntimeException(&quot;A parcela &quot; + parcela.getCodigo() + &quot; não pertence ao cliente selecionado&quot;);</span>
+
+			try {
+<span class="nc" id="L76">				lista.add(parcela);</span>
+
+<span class="nc" id="L78">				vlTotal = vlTotal + parcela.getValor_restante();</span>
+
+<span class="nc" id="L80">			} catch (Exception e) {</span>
+<span class="nc" id="L81">				e.getMessage();</span>
+<span class="nc" id="L82">				throw new RuntimeException(&quot;Erro ao receber, chame o suporte&quot;);</span>
+<span class="nc" id="L83">			}</span>
+		}
+
+<span class="nc" id="L86">		Optional&lt;Pessoa&gt; pessoa = pessoas.buscaPessoa(codpes);</span>
+
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		if (!pessoa.isPresent())</span>
+<span class="nc" id="L89">			throw new RuntimeException(&quot;Cliente não encontrado&quot;);</span>
+
+<span class="nc" id="L91">		Recebimento recebimento = new Recebimento(vlTotal, dataAtual.dataAtualTimeStamp(), pessoa.get(), lista);</span>
+
+		try {
+<span class="nc" id="L94">			recebimentos.save(recebimento);</span>
+<span class="nc" id="L95">		} catch (Exception e) {</span>
+<span class="nc" id="L96">			e.getMessage();</span>
+<span class="nc" id="L97">			throw new RuntimeException(&quot;Erro ao receber, chame o suporte&quot;);</span>
+<span class="nc" id="L98">		}</span>
+
+<span class="nc" id="L100">		return recebimento.getCodigo().toString();</span>
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public String receber(Long codreceber, Double vlrecebido, Double vlacrescimo, Double vldesconto, Long codtitulo) {
+<span class="nc" id="L105">		Optional&lt;Recebimento&gt; recebimento = recebimentos.findById(codreceber);</span>
+<span class="nc" id="L106">		Optional&lt;Titulo&gt; titulo = titulos.busca(codtitulo);</span>
+
+<span class="nc bnc" id="L108" title="All 4 branches missed.">		if (codtitulo == 0 || codtitulo == null)</span>
+<span class="nc" id="L109">			throw new RuntimeException(&quot;Selecione um título para realizar o recebimento&quot;);</span>
+
+<span class="nc bnc" id="L111" title="All 2 branches missed.">		if (recebimento.map(Recebimento::getData_processamento).isPresent())</span>
+<span class="nc" id="L112">			throw new RuntimeException(&quot;Recebimento já esta fechado&quot;);</span>
+
+		// vincula o titulo ao recebimento
+<span class="nc" id="L115">		recebimento.get().setTitulo(titulo.get());</span>
+
+<span class="nc" id="L117">		DecimalFormat formata = new DecimalFormat(&quot;0.00&quot;);</span>
+<span class="nc" id="L118">		Double vlrecebimento = Double</span>
+<span class="nc" id="L119">				.valueOf(formata.format(recebimento.map(Recebimento::getValor_total).get()).replaceAll(&quot;,&quot;, &quot;.&quot;));</span>
+
+<span class="nc bnc" id="L121" title="All 2 branches missed.">		if (vlrecebido &gt; vlrecebimento)</span>
+<span class="nc" id="L122">			throw new RuntimeException(&quot;Valor de recebimento é superior aos títulos&quot;);</span>
+
+<span class="nc" id="L124">		List&lt;Parcela&gt; listParcelas = receParcelas.parcelasDoReceber(codreceber);</span>
+
+<span class="nc bnc" id="L126" title="All 2 branches missed.">		if (listParcelas.isEmpty())</span>
+<span class="nc" id="L127">			throw new RuntimeException(&quot;Recebimento não possue parcelas&quot;);</span>
+
+<span class="nc bnc" id="L129" title="All 2 branches missed.">		if (vlrecebido &lt;= 0.0)</span>
+<span class="nc" id="L130">			throw new RuntimeException(&quot;Valor de recebimento inválido&quot;);</span>
+
+		// guarda o valor do lançamento de caixa
+<span class="nc" id="L133">		Double vllancamento = vlrecebido;</span>
+
+		// verifica cada parcela que veio e realiza o seu recebimento individual
+<span class="nc bnc" id="L136" title="All 2 branches missed.">		for (int i = 0; i &lt; listParcelas.size(); i++) {</span>
+
+<span class="nc bnc" id="L138" title="All 2 branches missed.">			if (vlrecebido &gt; 0) {</span>
+<span class="nc" id="L139">				Double vlsobra = vlrecebido - listParcelas.get(i).getValor_restante();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">				vlsobra = vlsobra &lt; 0 ? 0 : vlsobra;</span>
+
+<span class="nc" id="L142">				Double vlquitado = vlsobra - vlrecebido;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">				vlquitado = vlquitado &lt; 0 ? vlquitado * -1 : vlquitado;</span>
+
+<span class="nc" id="L145">				vlrecebido = vlsobra;</span>
+
+<span class="nc" id="L147">				Long parcela = listParcelas.get(i).getCodigo();</span>
+
+				try {
+<span class="nc" id="L150">					parcelas.receber(parcela, vlquitado, 0.00, 0.00);</span>
+<span class="nc" id="L151">				} catch (Exception e) {</span>
+<span class="nc" id="L152">					e.getMessage();</span>
+<span class="nc" id="L153">					throw new RuntimeException(&quot;Ocorreu um erro ao realizar o recebimento, chame o suporte&quot;);</span>
+<span class="nc" id="L154">				}</span>
+			}
+
+		}
+
+<span class="nc" id="L159">		Aplicacao aplicacao = new Aplicacao();</span>
+<span class="nc" id="L160">		Usuario usuario = usuarios.buscaUsuario(aplicacao.getUsuarioAtual());</span>
+
+		// pega a sigla do titulo
+<span class="nc" id="L163">		String sigla = titulo.map(Titulo::getTipo).get().getSigla();</span>
+
+		// verifica se é um lançamento do tipo cartão para lançar o cartao_lancamento
+<span class="nc bnc" id="L166" title="All 4 branches missed.">		if (sigla.equals(TituloTipo.CARTDEB.toString()) || sigla.equals(TituloTipo.CARTCRED.toString())) {</span>
+<span class="nc" id="L167">			cartaoLancamentos.lancamento(vllancamento, titulo);</span>
+
+		} else {
+<span class="nc" id="L170">			Optional&lt;Caixa&gt; caixa = caixas.caixaAberto();</span>
+<span class="nc" id="L171">			CaixaLancamento lancamento = new CaixaLancamento(&quot;Referente ao recebimento &quot; + codreceber, vllancamento,</span>
+<span class="nc" id="L172">					TipoLancamento.RECEBIMENTO, EstiloLancamento.ENTRADA, caixa.get(), usuario);</span>
+
+			// vincula o recebimento ao caixa_lancamento
+<span class="nc" id="L175">			lancamento.setRecebimento(recebimento.get());</span>
+
+			// Faz um caixa lançamento no valor do receber;
+			try {
+<span class="nc" id="L179">				lancamentos.lancamento(lancamento);</span>
+<span class="nc" id="L180">			} catch (Exception e) {</span>
+<span class="nc" id="L181">				e.getMessage();</span>
+<span class="nc" id="L182">				throw new RuntimeException(&quot;Ocorreu um erro ao realizar o recebimento, chame o suporte&quot;);</span>
+<span class="nc" id="L183">			}</span>
+		}
+
+		try {
+<span class="nc" id="L187">			DataAtual dataAtual = new DataAtual();</span>
+
+<span class="nc" id="L189">			recebimento.get().setValor_recebido(vllancamento);</span>
+<span class="nc" id="L190">			recebimento.get().setValor_acrescimo(vlacrescimo);</span>
+<span class="nc" id="L191">			recebimento.get().setValor_desconto(vldesconto);</span>
+<span class="nc" id="L192">			recebimento.get().setData_processamento(dataAtual.dataAtualTimeStamp());</span>
+
+<span class="nc" id="L194">			recebimentos.save(recebimento.get());</span>
+<span class="nc" id="L195">		} catch (Exception e) {</span>
+<span class="nc" id="L196">			e.getMessage();</span>
+<span class="nc" id="L197">			throw new RuntimeException(&quot;Ocorreu um erro ao realizar o recebimento, chame o suporte&quot;);</span>
+<span class="nc" id="L198">		}</span>
+
+<span class="nc" id="L200">		return &quot;Recebimento realizado com sucesso&quot;;</span>
+	}
+
+	public String remover(Long codigo) {
+<span class="nc" id="L204">		Optional&lt;Recebimento&gt; recebimento = recebimentos.findById(codigo);</span>
+
+<span class="nc bnc" id="L206" title="All 2 branches missed.">		if (recebimento.map(Recebimento::getData_processamento).isPresent())</span>
+<span class="nc" id="L207">			throw new RuntimeException(&quot;Esse recebimento não pode ser removido, pois ele já esta processado&quot;);</span>
+
+		try {
+<span class="nc" id="L210">			recebimentos.deleteById(codigo);</span>
+<span class="nc" id="L211">		} catch (Exception e) {</span>
+<span class="nc" id="L212">			System.out.println(e.getMessage());</span>
+<span class="nc" id="L213">			throw new RuntimeException(&quot;Erro ao remover orçamento, chame o suporte&quot;);</span>
+<span class="nc" id="L214">		}</span>
+
+<span class="nc" id="L216">		return &quot;removido com sucesso&quot;;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

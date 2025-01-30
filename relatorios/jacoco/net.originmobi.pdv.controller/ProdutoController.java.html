@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProdutoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pdv</a> &gt; <a href="index.source.html" class="el_package">net.originmobi.pdv.controller</a> &gt; <span class="el_source">ProdutoController.java</span></div><h1>ProdutoController.java</h1><pre class="source lang-java linenums">package net.originmobi.pdv.controller;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import net.originmobi.pdv.enumerado.Ativo;
+import net.originmobi.pdv.enumerado.produto.ProdutoBalanca;
+import net.originmobi.pdv.enumerado.produto.ProdutoControleEstoque;
+import net.originmobi.pdv.enumerado.produto.ProdutoSubstTributaria;
+import net.originmobi.pdv.enumerado.produto.ProdutoVendavel;
+import net.originmobi.pdv.filter.ProdutoFilter;
+import net.originmobi.pdv.model.Categoria;
+import net.originmobi.pdv.model.Fornecedor;
+import net.originmobi.pdv.model.Grupo;
+import net.originmobi.pdv.model.ModBcIcms;
+import net.originmobi.pdv.model.Produto;
+import net.originmobi.pdv.model.Tributacao;
+import net.originmobi.pdv.service.CategoriaService;
+import net.originmobi.pdv.service.FornecedorService;
+import net.originmobi.pdv.service.GrupoService;
+import net.originmobi.pdv.service.ImagemProdutoService;
+import net.originmobi.pdv.service.ProdutoService;
+import net.originmobi.pdv.service.TributacaoService;
+import net.originmobi.pdv.service.notafiscal.ModBcIcmsService;
+
+@Controller
+@RequestMapping(&quot;/produto&quot;)
+@SessionAttributes(&quot;filterProduto&quot;)
+<span class="fc" id="L48">public class ProdutoController {</span>
+
+	private static final String PRODUTO_LIST = &quot;produto/list&quot;;
+
+	private static final String PRODUTO_FORM = &quot;produto/form&quot;;
+
+	@Autowired
+	private ProdutoService produtos;
+
+	@Autowired
+	private FornecedorService fornecedores;
+
+	@Autowired
+	private GrupoService grupos;
+
+	@Autowired
+	private CategoriaService categorias;
+
+	@Autowired
+	private ImagemProdutoService imagens;
+
+	@Autowired
+	private TributacaoService tributacoes;
+
+	@Autowired
+	private ModBcIcmsService modbcs;
+
+	@GetMapping(&quot;/form&quot;)
+	public ModelAndView form(Produto produto) {
+<span class="nc" id="L77">		ModelAndView mv = new ModelAndView(PRODUTO_FORM);</span>
+<span class="nc" id="L78">		mv.addObject(new Produto());</span>
+<span class="nc" id="L79">		return mv;</span>
+	}
+
+	@ModelAttribute(&quot;filterProduto&quot;)
+	public ProdutoFilter inicializerProdutoFilter() {
+<span class="nc" id="L84">		return new ProdutoFilter();</span>
+	}
+
+	@GetMapping
+	public ModelAndView lista(@ModelAttribute(&quot;filterProduto&quot;) ProdutoFilter filter, Pageable pageable, Model model) {
+<span class="nc" id="L89">		ModelAndView mv = new ModelAndView(PRODUTO_LIST);</span>
+<span class="nc" id="L90">		Page&lt;Produto&gt; listProdutos = produtos.filter(filter, pageable);</span>
+<span class="nc" id="L91">		mv.addObject(&quot;produtos&quot;, listProdutos);</span>
+
+<span class="nc" id="L93">		model.addAttribute(&quot;qtdpaginas&quot;, listProdutos.getTotalPages());</span>
+<span class="nc" id="L94">		model.addAttribute(&quot;pagAtual&quot;, listProdutos.getPageable().getPageNumber());</span>
+<span class="nc" id="L95">		model.addAttribute(&quot;proxPagina&quot;, listProdutos.getPageable().next().getPageNumber());</span>
+<span class="nc" id="L96">		model.addAttribute(&quot;pagAnterior&quot;, listProdutos.getPageable().previousOrFirst().getPageNumber());</span>
+<span class="nc" id="L97">		model.addAttribute(&quot;hasNext&quot;, listProdutos.hasNext());</span>
+<span class="nc" id="L98">		model.addAttribute(&quot;hasPrevious&quot;, listProdutos.hasPrevious());</span>
+
+<span class="nc" id="L100">		return mv;</span>
+	}
+
+	@RequestMapping(method = RequestMethod.POST)
+	public String cadastrar(@RequestParam Map&lt;String, String&gt; request, RedirectAttributes attributes) {
+
+<span class="nc" id="L106">		String prod = request.get(&quot;codigo&quot;);</span>
+<span class="nc" id="L107">		String descricao = request.get(&quot;descricao&quot;);</span>
+<span class="nc" id="L108">		Long codforne = Long.decode(request.get(&quot;fornecedor&quot;));</span>
+<span class="nc" id="L109">		Long categoria = Long.decode(request.get(&quot;categoria&quot;));</span>
+<span class="nc" id="L110">		Long grupo = Long.decode(request.get(&quot;grupo&quot;));</span>
+<span class="nc" id="L111">		String balanca = request.get(&quot;balanca&quot;);</span>
+<span class="nc" id="L112">		String vlcusto = request.get(&quot;valor_custo&quot;);</span>
+<span class="nc" id="L113">		String vlvenda = request.get(&quot;valor_venda&quot;);</span>
+<span class="nc" id="L114">		String validade = request.get(&quot;data_validade&quot;);</span>
+<span class="nc" id="L115">		String controleEstoque = request.get(&quot;controla_estoque&quot;);</span>
+<span class="nc" id="L116">		String ativo = request.get(&quot;ativo&quot;);</span>
+<span class="nc" id="L117">		String unitario = request.get(&quot;unidade&quot;);</span>
+<span class="nc" id="L118">		String subtribu = request.get(&quot;subtributaria&quot;);</span>
+<span class="nc" id="L119">		String ncm = request.get(&quot;ncm&quot;);</span>
+<span class="nc" id="L120">		String cest = request.get(&quot;cest&quot;);</span>
+<span class="nc" id="L121">		String vlTributacao = request.get(&quot;tributacao&quot;);</span>
+<span class="nc" id="L122">		String codModbc = request.get(&quot;modBcIcms&quot;);</span>
+<span class="nc" id="L123">		String vendavel = request.get(&quot;vendavel&quot;);</span>
+
+<span class="nc bnc" id="L125" title="All 2 branches missed.">		Long codigoprod = prod.isEmpty() ? 0 : Long.decode(prod);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">		Double valorCusto = vlcusto.isEmpty() ? 0.0 : Double.valueOf(vlcusto.replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">		Double valorVenda = vlvenda.isEmpty() ? 0.0 : Double.valueOf(vlvenda.replace(&quot;,&quot;, &quot;.&quot;));</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">		Long tributacao = vlTributacao.isEmpty() ? null : Long.decode(vlTributacao);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">		Long modbc = codModbc.isEmpty() ? null : Long.decode(codModbc);</span>
+
+<span class="nc" id="L131">		Date dataValidade = null;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">		if (!validade.isEmpty()) {</span>
+<span class="nc" id="L133">			SimpleDateFormat formatoUser = new SimpleDateFormat(&quot;dd/MM/yyyy&quot;);</span>
+			try {
+<span class="nc" id="L135">				dataValidade = formatoUser.parse(validade);</span>
+<span class="nc" id="L136">			} catch (ParseException e) {</span>
+<span class="nc" id="L137">				e.printStackTrace();</span>
+<span class="nc" id="L138">			}</span>
+		}
+
+<span class="nc bnc" id="L141" title="All 2 branches missed.">		int usaBalanca = balanca.equals(&quot;SIM&quot;) ? 1 : 0;</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">		Ativo situacao = ativo.equals(&quot;ATIVO&quot;) ? Ativo.ATIVO : Ativo.INATIVO;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">		ProdutoSubstTributaria substituicao = subtribu.equals(&quot;SIM&quot;) ? ProdutoSubstTributaria.SIM</span>
+				: ProdutoSubstTributaria.NAO;
+
+<span class="nc" id="L146">		String mensagem = &quot;&quot;;</span>
+<span class="nc" id="L147">		System.out.println(controleEstoque);</span>
+<span class="nc" id="L148">		mensagem = produtos.merger(codigoprod, codforne, categoria, grupo, usaBalanca, descricao, valorCusto,</span>
+<span class="nc" id="L149">				valorVenda, dataValidade, controleEstoque, situacao.toString(), unitario, substituicao, ncm, cest, tributacao,</span>
+				modbc, vendavel);
+
+<span class="nc" id="L152">		attributes.addFlashAttribute(&quot;mensagem&quot;, mensagem);</span>
+		
+<span class="nc bnc" id="L154" title="All 2 branches missed.">		if(codigoprod != 0)</span>
+<span class="nc" id="L155">			return &quot;redirect:/produto/&quot; + codigoprod.toString();</span>
+		
+<span class="nc" id="L157">		return &quot;redirect:/produto&quot;;</span>
+
+	}
+
+	@GetMapping(&quot;{codigo}&quot;)
+	public ModelAndView editar(@PathVariable(&quot;codigo&quot;) Produto produto) {
+<span class="nc" id="L163">		ModelAndView mv = new ModelAndView(PRODUTO_FORM);</span>
+<span class="nc" id="L164">		mv.addObject(&quot;produto&quot;, produto);</span>
+<span class="nc" id="L165">		mv.addObject(&quot;imagem&quot;, imagens.busca(produto.getCodigo()));</span>
+<span class="nc" id="L166">		return mv;</span>
+	}
+
+	@ModelAttribute(&quot;ativo&quot;)
+	public List&lt;Ativo&gt; ativo() {
+<span class="nc" id="L171">		return Arrays.asList(Ativo.values());</span>
+	}
+
+	@ModelAttribute(&quot;fornecedores&quot;)
+	public List&lt;Fornecedor&gt; fornecedores() {
+<span class="nc" id="L176">		return fornecedores.lista();</span>
+	}
+
+	@ModelAttribute(&quot;grupos&quot;)
+	public List&lt;Grupo&gt; grupos() {
+<span class="nc" id="L181">		return grupos.lista();</span>
+	}
+
+	@ModelAttribute(&quot;categorias&quot;)
+	public List&lt;Categoria&gt; categorias() {
+<span class="nc" id="L186">		return categorias.lista();</span>
+	}
+
+	@ModelAttribute(&quot;balanca&quot;)
+	public List&lt;ProdutoBalanca&gt; balanca() {
+<span class="nc" id="L191">		return Arrays.asList(ProdutoBalanca.values());</span>
+	}
+
+	@ModelAttribute(&quot;subtributaria&quot;)
+	public List&lt;ProdutoSubstTributaria&gt; substTributaria() {
+<span class="nc" id="L196">		return Arrays.asList(ProdutoSubstTributaria.values());</span>
+	}
+
+	@ModelAttribute(&quot;tributacoes&quot;)
+	public List&lt;Tributacao&gt; tributacoes() {
+<span class="nc" id="L201">		return tributacoes.lista();</span>
+	}
+
+	@ModelAttribute(&quot;modbcs&quot;)
+	private List&lt;ModBcIcms&gt; modbc() {
+<span class="nc" id="L206">		return modbcs.lista();</span>
+	}
+
+	@ModelAttribute(&quot;controlaestoque&quot;)
+	private List&lt;ProdutoControleEstoque&gt; controlaestoque() {
+<span class="nc" id="L211">		return Arrays.asList(ProdutoControleEstoque.values());</span>
+	}
+	
+	@ModelAttribute(&quot;produtoVendavel&quot;)
+	public List&lt;ProdutoVendavel&gt; produtoVendavel() {
+<span class="nc" id="L216">		return Arrays.asList(ProdutoVendavel.values());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
